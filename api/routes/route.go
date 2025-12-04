@@ -1,0 +1,50 @@
+package routes
+
+import (
+	"micro-site/api/handler"
+	"micro-site/api/middleware"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
+
+func SetupRouter() *gin.Engine {
+	router := gin.Default()
+
+	api := router.Group("/api")
+	api.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"I am fine": 200})
+	})
+	api.POST("/validate-mobile-number", handler.ValidateMobileNumber)
+	api.POST("/auth/login", handler.HandleLogin)
+	api.POST("/auth/resend", handler.ResentOtp)
+	// api.POST("/auth/resend", middleware.RateLimitMiddleware(), handler.ResentOtp)
+
+	api.Use(middleware.AuthMiddleware())
+	api.POST("/update-profile", handler.UpdateProfile)
+	api.POST("/update-profile-image", handler.UploadprofileImage)
+	api.GET("/microsite/lists", handler.GetMicroSite)
+	api.GET("/microsite/details/:id", handler.GetMicrositeDetails)
+	api.POST("/microsite/create", handler.CreateMicrosite)
+	api.PUT("/microsite/update/:id", handler.UpdateMicrosite)
+	api.DELETE("/microsite/delete/:id", handler.DeleteMicrosite)
+
+	admin := router.Group("/api/admin")
+	admin.POST("/login", handler.AdminHandleLogin)
+
+	// Protected admin routes
+	admin.Use(middleware.AdminAuthMiddleware())
+	admin.GET("/users", handler.GetAllUsers)
+	admin.GET("/users/:id/microsites", handler.GetUserMicrosites)
+	admin.GET("/microsites", handler.GetAllMicrosites)
+	admin.PUT("/microsite/approve/:id", handler.ApproveMicrosite)
+	admin.PUT("/microsite/reject/:id", handler.RejectMicrosite)
+	admin.DELETE("/microsite/delete/:id", handler.AdminDeleteMicrosite)
+
+	// api.POST("/update-profile", func(c *gin.Context) {
+	// 	c.JSON(200, gin.H{"message": "Authorized user!"})
+	// })
+
+	return router
+
+}
