@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./uploads:/root/uploads # Persist uploads if any
+    environment:
+      - GIN_MODE=release
+    restart: unless-stopped
+    # If you have a database service, uncomment and configure below
+    # depends_on:
+    #   - db
