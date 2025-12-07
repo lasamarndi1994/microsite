@@ -10,6 +10,7 @@ import (
 
 func SetupRouter() *gin.Engine {
 	router := gin.Default()
+	router.Use(middleware.CORSMiddleware())
 
 	api := router.Group("/api")
 	api.GET("/health", func(c *gin.Context) {

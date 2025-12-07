@@ -81,10 +81,10 @@ func ValidateMobileNumber(c *gin.Context) {
 	if result.RowsAffected > 0 {
 		// send otp
 		SendOtp(user)
-		c.JSON(http.StatusOK, service.SuccessResponse("OTP is send your mobile number"))
+		c.JSON(http.StatusOK, service.SuccessResponse("OTP is send your mobile number.", helper.MaskEmail(user.Email)))
 		return
 	} else {
-		c.JSON(http.StatusBadRequest, service.ErrorResponse("Enter mobile number does't exits"))
+		c.JSON(http.StatusBadRequest, service.ErrorResponse("Enter mobile number doesn't exist."))
 		return
 	}
 }

@@ -66,3 +66,32 @@ func GenerateUniqueSlug(db *gorm.DB, title string, model interface{}, field stri
 
 	return uniqueSlug
 }
+
+// MaskEmail masks the email address
+// Format: first 4 chars + ** + last 2 chars before @ + domain
+// If local part is too short, returns as is or minimal masking
+func MaskEmail(email string) string {
+	parts := strings.Split(email, "@")
+	if len(parts) != 2 {
+		return email
+	}
+
+	local := parts[0]
+	domain := parts[1]
+
+	if len(local) <= 3 {
+		return email // Too short to mask safely based on rules
+	}
+
+	// Keep first 3 characters
+	firstPart := local[:3]
+
+	// Keep last 2 characters (if length permits)
+	if len(local) > 5 {
+		lastPart := local[len(local)-2:]
+		return fmt.Sprintf("%s**%s@%s", firstPart, lastPart, domain)
+	}
+
+	// If length is between 5 and 6, just append **
+	return fmt.Sprintf("%s**@%s", firstPart, domain)
+}
