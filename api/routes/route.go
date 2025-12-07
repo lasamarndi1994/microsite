@@ -18,7 +18,7 @@ func SetupRouter() *gin.Engine {
 	})
 	api.POST("/validate-mobile-number", handler.ValidateMobileNumber)
 	api.POST("/auth/login", handler.HandleLogin)
-	api.POST("/auth/resend", handler.ResentOtp)
+	api.POST("/auth/resend-otp", handler.ResentOtp)
 	// api.POST("/auth/resend", middleware.RateLimitMiddleware(), handler.ResentOtp)
 
 	api.Use(middleware.AuthMiddleware())

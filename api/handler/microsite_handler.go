@@ -27,13 +27,16 @@ func GetMicroSite(c *gin.Context) {
 		return
 	}
 
+	// Get pagination parameters
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+	offset := (page - 1) * limit
+
+	// Build base query
+	query := database.DB.Model(&model.MicroSite{}).Where("user_id = ?", user.Id)
+
 	// Get status filter from query parameter
 	status := c.Query("status")
-
-	// Build query
-	query := database.DB.Where("user_id = ?", user.Id).
-		Preload("Services").
-		Preload("SocialLinks")
 
 	// Apply status filter if provided
 	if status != "" {
@@ -51,19 +54,30 @@ func GetMicroSite(c *gin.Context) {
 		query = query.Where("status = ?", status)
 	}
 
-	// Execute query
+	// Count total records
+	var total int64
+	query.Count(&total)
+
+	// Fetch paginated data
 	var microsites []model.MicroSite
-	if err := query.Find(&microsites).Error; err != nil {
+	if err := query.Preload("Services").
+		Preload("SocialLinks").
+		Limit(limit).
+		Offset(offset).
+		Find(&microsites).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to fetch microsites"))
 		return
 	}
 
 	// Return success response
 	c.JSON(http.StatusOK, gin.H{
-		"status":  true,
-		"message": "Microsites fetched successfully",
-		"data":    microsites,
-		"count":   len(microsites),
+		"status":      true,
+		"message":     "Microsites fetched successfully",
+		"data":        microsites,
+		"total":       total,
+		"page":        page,
+		"per_page":    limit,
+		"total_pages": (total + int64(limit) - 1) / int64(limit),
 	})
 }
 

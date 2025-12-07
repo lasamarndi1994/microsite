@@ -38,7 +38,7 @@ func HandleLogin(c *gin.Context) {
 	if otpCheck.RowsAffected > 0 {
 		expireTime := otpModel.CreatedAt.Add(5 * time.Minute)
 		if time.Now().After(expireTime) || otpModel.Status {
-			c.JSON(http.StatusOK, service.ErrorResponse("Enter OTP is expired."))
+			c.JSON(http.StatusBadRequest, service.ErrorResponse("Enter OTP is expired."))
 			return
 		}
 		otpModel.Status = true
@@ -49,14 +49,11 @@ func HandleLogin(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, service.ErrorResponse("Unable to generate token"))
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{
-			"status":  true,
-			"message": "Login Successfully ",
-			"token":   token,
-		})
+		c.JSON(http.StatusOK, service.SuccessResponse("Login Successfully", token))
+
 		return
 	} else {
-		c.JSON(http.StatusOK, service.ErrorResponse("Enter OTP is Invalid"))
+		c.JSON(http.StatusBadRequest, service.ErrorResponse("Enter OTP is Invalid"))
 		return
 	}
 }
@@ -81,7 +78,8 @@ func ValidateMobileNumber(c *gin.Context) {
 	if result.RowsAffected > 0 {
 		// send otp
 		SendOtp(user)
-		c.JSON(http.StatusOK, service.SuccessResponse("OTP is send your email address.", helper.MaskEmail(user.Email)))
+		user.Email = helper.MaskEmail(user.Email)
+		c.JSON(http.StatusOK, service.SuccessResponse("OTP is send your email address.", user))
 		return
 	} else {
 		c.JSON(http.StatusBadRequest, service.ErrorResponse("Enter mobile number doesn't exist."))
