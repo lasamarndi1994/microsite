@@ -121,9 +121,9 @@ func SendOtp(user model.User) {
 	otpModel.UserId = user.Id
 	database.DB.Save(&otpModel)
 
-	go service.SendHTMLEmail(user.Email, "Welcome !", service.EmailData{
-		Name:      user.UserName,
-		Email:     user.Email,
-		OtpNumber: int32(email_otp),
-	})
+	// go service.SendHTMLEmail(user.Email, "Welcome !", service.EmailData{
+	// 	Name:      user.UserName,
+	// 	Email:     user.Email,
+	// 	OtpNumber: int32(email_otp),
+	// })
 }
