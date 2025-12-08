@@ -49,7 +49,7 @@ func SeedFakeMicrosites() {
 			FullName:    "Microsite Owner " + strconv.Itoa(i),
 			Title:       title,
 			Slug:        slug,
-			About:       "This is a fake microsite.",
+			Description: "This is a fake microsite.",
 			Status:      "Active",
 			IsDraft:     "0",
 			AvatarIcon:  "default_avatar.png",

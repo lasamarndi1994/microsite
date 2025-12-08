@@ -191,7 +191,7 @@ func ApproveMicrosite(c *gin.Context) {
 
 	// Parse request body for optional comment
 	var reqBody struct {
-		Comment string `json:"comment"`
+		RejectionReason string `json:"rejection_reason"`
 	}
 	c.ShouldBindJSON(&reqBody)
 
@@ -205,8 +205,8 @@ func ApproveMicrosite(c *gin.Context) {
 	// Update microsite status
 	microsite.Status = "Approved"
 	microsite.AdminId = admin.Id
-	if reqBody.Comment != "" {
-		microsite.Comment = reqBody.Comment
+	if reqBody.RejectionReason != "" {
+		microsite.RejectionReason = reqBody.RejectionReason
 	}
 
 	if err := database.DB.Save(&microsite).Error; err != nil {
@@ -245,7 +245,7 @@ func RejectMicrosite(c *gin.Context) {
 
 	// Parse request body for comment (required for rejection)
 	var reqBody struct {
-		Comment string `json:"comment" binding:"required"`
+		RejectionReason string `json:"rejection_reason" binding:"required"`
 	}
 	if err := c.ShouldBindJSON(&reqBody); err != nil {
 		c.JSON(http.StatusBadRequest, service.ErrorResponse("Rejection comment is required"))
@@ -262,7 +262,7 @@ func RejectMicrosite(c *gin.Context) {
 	// Update microsite status
 	microsite.Status = "Rejected"
 	microsite.AdminId = admin.Id
-	microsite.Comment = reqBody.Comment
+	microsite.RejectionReason = reqBody.RejectionReason
 
 	if err := database.DB.Save(&microsite).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to reject microsite"))

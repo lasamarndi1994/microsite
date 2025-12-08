@@ -136,7 +136,7 @@ func CreateMicrosite(c *gin.Context) {
 	micro_site.UserId = user.Id
 	micro_site.Title = req.Title
 	micro_site.FullName = req.FullName
-	micro_site.About = req.About
+	micro_site.Description = req.Description
 	micro_site.IsDraft = req.IsDraft
 
 	randName := fmt.Sprintf("%d", os.Getpid())
@@ -206,7 +206,7 @@ func UpdateMicrosite(c *gin.Context) {
 	// Update Parent Data
 	existing.FullName = req.FullName
 	existing.Title = req.Title
-	existing.About = req.About
+	existing.Description = req.Description
 	existing.IsDraft = req.IsDraft
 
 	randName := fmt.Sprintf("%d", os.Getpid())
