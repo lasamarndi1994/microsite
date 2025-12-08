@@ -9,7 +9,7 @@ func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Get origin from request
 		origin := c.Request.Header.Get("Origin")
-		
+
 		// If origin is present, echo it back to allow it (e.g. localhost:5173)
 		if origin != "" {
 			c.Writer.Header().Set("Access-Control-Allow-Origin", origin)

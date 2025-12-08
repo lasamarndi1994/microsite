@@ -4,8 +4,10 @@ import (
 	"micro-site/api/handler"
 	"micro-site/api/middleware"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/time/rate"
 )
 
 func SetupRouter() *gin.Engine {
@@ -18,8 +20,8 @@ func SetupRouter() *gin.Engine {
 	})
 	api.POST("/validate-mobile-number", handler.ValidateMobileNumber)
 	api.POST("/auth/login", handler.HandleLogin)
-	api.POST("/auth/resend-otp", handler.ResentOtp)
-	// api.POST("/auth/resend", middleware.RateLimitMiddleware(), handler.ResentOtp)
+
+	api.POST("/auth/resend-otp", middleware.RateLimitMiddleware(rate.Every(1*time.Minute), 1), handler.ResentOtp)
 
 	api.Use(middleware.AuthMiddleware())
 	api.POST("/update-profile", handler.UpdateProfile)

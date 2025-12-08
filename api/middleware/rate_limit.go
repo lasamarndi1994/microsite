@@ -2,16 +2,45 @@ package middleware
 
 import (
 	"net/http"
-	"time"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/time/rate"
 )
 
-var limiter = rate.NewLimiter(rate.Every(time.Minute), 1)
+type IPRateLimiter struct {
+	ips map[string]*rate.Limiter
+	mu  *sync.RWMutex
+	r   rate.Limit
+	b   int
+}
 
-func RateLimitMiddleware() gin.HandlerFunc {
+func NewIPRateLimiter(r rate.Limit, b int) *IPRateLimiter {
+	return &IPRateLimiter{
+		ips: make(map[string]*rate.Limiter),
+		mu:  &sync.RWMutex{},
+		r:   r,
+		b:   b,
+	}
+}
+
+func (i *IPRateLimiter) GetLimiter(ip string) *rate.Limiter {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+
+	limiter, exists := i.ips[ip]
+	if !exists {
+		limiter = rate.NewLimiter(i.r, i.b)
+		i.ips[ip] = limiter
+	}
+
+	return limiter
+}
+
+func RateLimitMiddleware(r rate.Limit, b int) gin.HandlerFunc {
+	i := NewIPRateLimiter(r, b)
 	return func(c *gin.Context) {
+		limiter := i.GetLimiter(c.ClientIP())
 		if !limiter.Allow() {
 			c.JSON(http.StatusTooManyRequests, gin.H{
 				"status":  false,
