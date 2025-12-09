@@ -19,11 +19,11 @@ func StartCron() {
 
 	// Schedule user seeding (e.g., run once every day at midnight)
 	// For testing purposes, you might want to run it more frequently or trigger it manually
-	c.AddFunc("0 0 0 * * *", func() {
-		SeedFakeUsers()
-	})
+	// c.AddFunc("1 0 0 * * *", func() {
+	// 	SeedFakeUsers()
+	// })
 
-	c.AddFunc("0 0 0 * * *", func() {
+	c.AddFunc("1 0 0 * * *", func() {
 		SeedFakeMicrosites()
 	})
 

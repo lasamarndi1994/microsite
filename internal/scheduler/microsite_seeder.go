@@ -20,8 +20,8 @@ import (
  */
 func SeedFakeMicrosites() {
 	fmt.Println("Starting microsite seeding...")
-	count := 10000
-	batchSize := 1000
+	count := 1000
+	batchSize := 100
 
 	// Fetch a list of existing user IDs to assign microsites to
 	var userIDs []uint64
@@ -39,6 +39,9 @@ func SeedFakeMicrosites() {
 	rand.Seed(time.Now().UnixNano())
 
 	for i := 0; i < count; i++ {
+		if i%100 == 0 {
+			fmt.Println("Preparing microsite", i)
+		}
 		userID := userIDs[rand.Intn(len(userIDs))]
 		title := "Microsite " + strconv.Itoa(i) + " " + strconv.Itoa(rand.Intn(100000))
 
@@ -87,6 +90,7 @@ func SeedFakeMicrosites() {
 
 		// Insert in batches
 		if len(microsites) >= batchSize {
+			fmt.Println("Saving batch of", len(microsites))
 			if err := saveMicrositesBatch(microsites); err != nil {
 				log.Printf("Error seeding microsites batch: %v", err)
 			} else {
@@ -117,5 +121,5 @@ func saveMicrositesBatch(microsites []model.MicroSite) error {
 	// Note: CreateInBatches with associations can be tricky with large datasets.
 	// If it fails, we might need to save parent first then children.
 	// But GORM usually handles it.
-	return database.DB.Session(&gorm.Session{CreateBatchSize: 1000}).Create(&microsites).Error
+	return database.DB.Session(&gorm.Session{CreateBatchSize: 100}).Create(&microsites).Error
 }
