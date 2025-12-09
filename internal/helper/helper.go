@@ -64,12 +64,12 @@ func GenerateUserID() string {
 * @return int64, error
  */
 func GenerateOTP() (int64, error) {
-	max := big.NewInt(1000000)             // 0 - 999999
+	max := big.NewInt(900000)              // 0 - 899999
 	n, err := crand.Int(crand.Reader, max) //  two return values
 	if err != nil {
 		return 0, err
 	}
-	return n.Int64(), nil // always 6 digits
+	return n.Int64() + 100000, nil // 100000 - 999999 (always 6 digits)
 }
 
 /*

@@ -18,8 +18,7 @@ import (
 * @return gin.JSON
  */
 func UpdateProfile(c *gin.Context) {
-	data, _ := c.Get("user")
-	user, _ := data.(model.User)
+	user := c.MustGet("user").(model.User)
 	request := request.UserRequest{}
 	if err := c.ShouldBindJSON(&request); err != nil {
 		errs := helper.FormatValidationError(err)
@@ -56,13 +55,12 @@ func UpdateProfile(c *gin.Context) {
  */
 func UploadprofileImage(c *gin.Context) {
 
-	data, _ := c.Get("user")
+	user := c.MustGet("user").(model.User)
 	request := request.UserAvatarRequest{}
 	if err := c.BindJSON(&request); err != nil {
 		c.JSON(400, gin.H{"error": "Invalid request format"})
 		return
 	}
-	user, _ := data.(model.User)
 	file_name := strconv.FormatUint(uint64(user.Id), 10) + user.UserName + ".png"
 	if service.UploadBase64Image(request.UserAvatar, file_name, "user") {
 		user.UserAvatar = file_name

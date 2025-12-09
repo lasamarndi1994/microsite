@@ -21,16 +21,7 @@ import (
  */
 func GetMicroSite(c *gin.Context) {
 	// Get the authenticated user
-	data, exists := c.Get("user")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, service.ErrorResponse("User not authenticated"))
-		return
-	}
-	user, ok := data.(model.User)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Invalid user data"))
-		return
-	}
+	user := c.MustGet("user").(model.User)
 
 	// Get pagination parameters
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
@@ -93,16 +84,7 @@ func GetMicroSite(c *gin.Context) {
  */
 func GetMicrositeDetails(c *gin.Context) {
 	// Get the authenticated user
-	data, exists := c.Get("user")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, service.ErrorResponse("User not authenticated"))
-		return
-	}
-	user, ok := data.(model.User)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Invalid user data"))
-		return
-	}
+	user := c.MustGet("user").(model.User)
 	// Get microsite ID from URL parameter
 	id := c.Param("id")
 	if id == "" {
@@ -134,8 +116,7 @@ func GetMicrositeDetails(c *gin.Context) {
 * @return gin.JSON
  */
 func CreateMicrosite(c *gin.Context) {
-	data, _ := c.Get("user")
-	user, _ := data.(model.User)
+	user := c.MustGet("user").(model.User)
 	var req request.MicrositeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		// Validation errors
@@ -203,8 +184,7 @@ func CreateMicrosite(c *gin.Context) {
 * @return gin.JSON
  */
 func UpdateMicrosite(c *gin.Context) {
-	data, _ := c.Get("user")
-	user, _ := data.(model.User)
+	user := c.MustGet("user").(model.User)
 	id := c.Param("id")
 
 	var existing model.MicroSite
