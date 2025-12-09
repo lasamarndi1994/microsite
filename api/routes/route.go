@@ -36,6 +36,9 @@ func SetupRouter() *gin.Engine {
 	api.PUT("/microsite/update/:id", handler.UpdateMicrosite)
 	api.DELETE("/microsite/delete/:id", handler.DeleteMicrosite)
 
+	api.POST("/lead/create", handler.CreateLead)
+	api.GET("/microsite/:id/leads", handler.GetLeads)
+
 	admin := router.Group("/api/admin")
 	admin.POST("/login", handler.AdminHandleLogin)
 

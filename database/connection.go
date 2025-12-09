@@ -75,6 +75,7 @@ func migration(db *gorm.DB) error {
 	db.AutoMigrate(model.MicroSite{})
 	db.AutoMigrate(model.Service{})
 	db.AutoMigrate(model.SocialLink{})
+	db.AutoMigrate(model.Lead{})
 	db.AutoMigrate(model.Admin{})
 
 	return nil
