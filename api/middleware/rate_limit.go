@@ -15,6 +15,12 @@ type IPRateLimiter struct {
 	b   int
 }
 
+/*
+* Create a new IP rate limiter
+* @param r rate.Limit
+* @param b int
+* @return *IPRateLimiter
+ */
 func NewIPRateLimiter(r rate.Limit, b int) *IPRateLimiter {
 	return &IPRateLimiter{
 		ips: make(map[string]*rate.Limiter),
@@ -24,6 +30,11 @@ func NewIPRateLimiter(r rate.Limit, b int) *IPRateLimiter {
 	}
 }
 
+/*
+* Get rate limiter for a specific IP
+* @param ip string
+* @return *rate.Limiter
+ */
 func (i *IPRateLimiter) GetLimiter(ip string) *rate.Limiter {
 	i.mu.Lock()
 	defer i.mu.Unlock()
@@ -37,6 +48,12 @@ func (i *IPRateLimiter) GetLimiter(ip string) *rate.Limiter {
 	return limiter
 }
 
+/*
+* Middleware to rate limit requests
+* @param r rate.Limit
+* @param b int
+* @return gin.HandlerFunc
+ */
 func RateLimitMiddleware(r rate.Limit, b int) gin.HandlerFunc {
 	i := NewIPRateLimiter(r, b)
 	return func(c *gin.Context) {

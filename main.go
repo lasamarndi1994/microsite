@@ -6,6 +6,10 @@ import (
 	"micro-site/database"
 )
 
+/*
+* Main entry point of the application
+* @return void
+ */
 func main() {
 	router := routes.SetupRouter()
 	cfg := config.LoadConfig() //Load configuration from .env

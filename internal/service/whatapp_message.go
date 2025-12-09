@@ -7,6 +7,10 @@ import (
 	"strings"
 )
 
+/*
+* Send WhatsApp message
+* @return void
+ */
 func SendWhatAppMessage() {
 	url := "https://gate.whapi.cloud/messages/text?token=s7u9lV7qTvM7JHsSgS7UOblZpYa7NHMm"
 	method := "POST"

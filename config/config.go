@@ -29,7 +29,10 @@ type Config struct {
 	// Add any other configuration variables here
 }
 
-// LoadConfig loads environment variables from .env and populates the Config struct
+/*
+* Load configuration from .env file
+* @return *Config
+ */
 func LoadConfig() *Config {
 	err := godotenv.Load()
 	if err != nil {
@@ -63,7 +66,10 @@ func LoadConfig() *Config {
 	return cfg
 }
 
-// GetDBPortAsInt returns the DBPort as an integer, handling errors
+/*
+* Get DB port as integer
+* @return int, error
+ */
 func (c *Config) GetDBPortAsInt() (int, error) {
 	port, err := strconv.Atoi(c.DBPort)
 	if err != nil {

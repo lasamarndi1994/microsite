@@ -4,7 +4,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// CORSMiddleware handles Cross-Origin Resource Sharing
+/*
+* Middleware to handle Cross-Origin Resource Sharing
+* @return gin.HandlerFunc
+ */
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Get origin from request

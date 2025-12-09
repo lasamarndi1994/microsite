@@ -11,6 +11,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+/*
+* Handle admin login
+* @param c *gin.Context
+* @return gin.JSON
+ */
 func AdminHandleLogin(c *gin.Context) {
 
 	var req request.AdminLoginRequest

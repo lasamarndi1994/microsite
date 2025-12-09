@@ -13,9 +13,10 @@ import (
 )
 
 /*
-* Handle Login
+* Handle user login
+* @param c *gin.Context
+* @return gin.JSON
  */
-
 func HandleLogin(c *gin.Context) {
 	input := request.LoginRequest{}
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -59,7 +60,9 @@ func HandleLogin(c *gin.Context) {
 }
 
 /*
-* validate mobile number
+* Validate mobile number
+* @param c *gin.Context
+* @return gin.JSON
  */
 func ValidateMobileNumber(c *gin.Context) {
 	request := request.MobileRequest{}
@@ -87,6 +90,11 @@ func ValidateMobileNumber(c *gin.Context) {
 	}
 }
 
+/*
+* Resend OTP to user
+* @param c *gin.Context
+* @return gin.JSON
+ */
 func ResentOtp(c *gin.Context) {
 	request := request.MobileRequest{}
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -107,6 +115,11 @@ func ResentOtp(c *gin.Context) {
 	}
 }
 
+/*
+* Send OTP to user
+* @param user model.User
+* @return void
+ */
 func SendOtp(user model.User) {
 
 	email_otp, _ := helper.GenerateOTP()

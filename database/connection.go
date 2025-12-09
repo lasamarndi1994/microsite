@@ -14,7 +14,11 @@ import (
 // DBClient represents our database connection pool
 var DB *gorm.DB
 
-// InitDB initializes the database connection pool
+/*
+* Initialize database connection
+* @param cfg *config.Config
+* @return void
+ */
 func InitDB(cfg *config.Config) {
 	// Construct the DSN (Data Source Name)
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
@@ -43,7 +47,10 @@ func InitDB(cfg *config.Config) {
 	fmt.Println("Successfully connected to MySQL database!")
 }
 
-// CloseDB closes the database connection pool
+/*
+* Close database connection
+* @return void
+ */
 func CloseDB() {
 	sqlDB, _ := DB.DB() // Get *sql.DB from GORM
 
@@ -57,6 +64,11 @@ func CloseDB() {
 	}
 }
 
+/*
+* Run database migrations
+* @param db *gorm.DB
+* @return error
+ */
 func migration(db *gorm.DB) error {
 	db.AutoMigrate(model.User{})
 	db.AutoMigrate(model.Otp{})

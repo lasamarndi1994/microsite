@@ -26,12 +26,21 @@ type MicroSite struct {
 	TimeStamp
 }
 
+/*
+* BeforeCreate hook to generate UUID and slug
+* @param tx *gorm.DB
+* @return error
+ */
 func (u *MicroSite) BeforeCreate(tx *gorm.DB) (err error) {
 	u.Uuid = uuid.New() // NOT uuid.UUID{}
 	u.Slug = helper.GenerateUniqueSlug(tx, u.Title, &MicroSite{}, "slug")
 	return
 }
 
+/*
+* Set table name for MicroSite
+* @return string
+ */
 func (MicroSite) TableName() string {
 	return "micro_sites"
 }

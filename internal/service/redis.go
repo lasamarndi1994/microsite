@@ -11,6 +11,10 @@ import (
 var Ctx = context.Background()
 var RedisClient *redis.Client
 
+/*
+* Initialize Redis connection
+* @return void
+ */
 func InitRedis() {
 	cfg := config.LoadConfig()
 	RedisClient = redis.NewClient(&redis.Options{

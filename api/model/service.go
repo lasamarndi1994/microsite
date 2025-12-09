@@ -12,6 +12,10 @@ type Service struct {
 	UpdatedAt   *time.Time `json:"-"`
 }
 
+/*
+* Set table name for Service
+* @return string
+ */
 func (Service) TableName() string {
 	return "services"
 }

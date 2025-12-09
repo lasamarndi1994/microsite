@@ -16,6 +16,10 @@ type AdminMigration struct {
 	TimeStamp
 }
 
+/*
+* Set table name for AdminMigration
+* @return string
+ */
 func (AdminMigration) TableName() string {
 	return "admins"
 }

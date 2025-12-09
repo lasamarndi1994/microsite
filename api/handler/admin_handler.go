@@ -10,6 +10,11 @@ import (
 )
 
 // GetAllUsers - Display all users list
+/*
+* Display all users list
+* @param c *gin.Context
+* @return gin.JSON
+ */
 func GetAllUsers(c *gin.Context) {
 	// Get admin from context (set by middleware)
 	_, exists := c.Get("admin")
@@ -56,6 +61,11 @@ func GetAllUsers(c *gin.Context) {
 }
 
 // GetUserMicrosites - Display all microsites for a specific user
+/*
+* Display all microsites for a specific user
+* @param c *gin.Context
+* @return gin.JSON
+ */
 func GetUserMicrosites(c *gin.Context) {
 	// Get admin from context
 	_, exists := c.Get("admin")
@@ -123,6 +133,11 @@ func GetUserMicrosites(c *gin.Context) {
 }
 
 // GetAllMicrosites - Display all microsites across all users
+/*
+* Display all microsites across all users
+* @param c *gin.Context
+* @return gin.JSON
+ */
 func GetAllMicrosites(c *gin.Context) {
 	// Get admin from context
 	_, exists := c.Get("admin")
@@ -169,6 +184,11 @@ func GetAllMicrosites(c *gin.Context) {
 }
 
 // ApproveMicrosite - Approve a pending microsite
+/*
+* Approve a pending microsite
+* @param c *gin.Context
+* @return gin.JSON
+ */
 func ApproveMicrosite(c *gin.Context) {
 	// Get admin from context
 	data, exists := c.Get("admin")
@@ -223,6 +243,11 @@ func ApproveMicrosite(c *gin.Context) {
 }
 
 // RejectMicrosite - Reject a microsite with comment
+/*
+* Reject a microsite with comment
+* @param c *gin.Context
+* @return gin.JSON
+ */
 func RejectMicrosite(c *gin.Context) {
 	// Get admin from context
 	data, exists := c.Get("admin")
@@ -278,6 +303,11 @@ func RejectMicrosite(c *gin.Context) {
 }
 
 // AdminDeleteMicrosite - Delete any microsite (admin privilege)
+/*
+* Delete any microsite (admin privilege)
+* @param c *gin.Context
+* @return gin.JSON
+ */
 func AdminDeleteMicrosite(c *gin.Context) {
 	// Get admin from context
 	_, exists := c.Get("admin")

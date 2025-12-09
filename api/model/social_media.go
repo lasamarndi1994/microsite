@@ -13,6 +13,10 @@ type SocialLink struct {
 	UpdatedAt   *time.Time `json:"-"`
 }
 
+/*
+* Set table name for SocialLink
+* @return string
+ */
 func (SocialLink) TableName() string {
 	return "social_medias"
 }

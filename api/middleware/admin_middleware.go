@@ -9,7 +9,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// AdminAuthMiddleware validates admin authentication
+/*
+* Middleware to validate admin authentication
+* @return gin.HandlerFunc
+ */
 func AdminAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Get token from Authorization header

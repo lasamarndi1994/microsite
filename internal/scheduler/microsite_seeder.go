@@ -14,6 +14,10 @@ import (
 	"gorm.io/gorm"
 )
 
+/*
+* Seed fake microsites for testing
+* @return void
+ */
 func SeedFakeMicrosites() {
 	fmt.Println("Starting microsite seeding...")
 	count := 10000
@@ -104,6 +108,11 @@ func SeedFakeMicrosites() {
 	fmt.Println("Microsite seeding completed.")
 }
 
+/*
+* Save batch of microsites
+* @param microsites []model.MicroSite
+* @return error
+ */
 func saveMicrositesBatch(microsites []model.MicroSite) error {
 	// Note: CreateInBatches with associations can be tricky with large datasets.
 	// If it fails, we might need to save parent first then children.

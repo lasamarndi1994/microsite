@@ -19,11 +19,20 @@ type User struct {
 	TimeStamp
 }
 
+/*
+* BeforeCreate hook to generate UUID
+* @param tx *gorm.DB
+* @return error
+ */
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	u.Uuid = uuid.New() // NOT uuid.UUID{}
 	return
 }
 
+/*
+* Set table name for User
+* @return string
+ */
 func (User) TableName() string {
 	return "users"
 }

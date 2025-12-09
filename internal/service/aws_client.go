@@ -10,6 +10,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 )
 
+/*
+* Create new SNS client
+* @return *sns.Client
+ */
 func NewSNSClient() *sns.Client {
 	fmt.Println(os.Getenv("AWS_REGION"))
 	cfg, err := config.LoadDefaultConfig(context.TODO(),
@@ -23,6 +27,13 @@ func NewSNSClient() *sns.Client {
 	return sns.NewFromConfig(cfg)
 }
 
+/*
+* Send SMS via SNS
+* @param snsClient *sns.Client
+* @param phone string
+* @param message string
+* @return error
+ */
 func SendSMS(snsClient *sns.Client, phone string, message string) error {
 	_, err := snsClient.Publish(context.TODO(), &sns.PublishInput{
 		Message:     &message,
@@ -37,6 +48,12 @@ func SendSMS(snsClient *sns.Client, phone string, message string) error {
 	return nil
 }
 
+/*
+* Send message to SNS topic
+* @param snsClient *sns.Client
+* @param msg string
+* @return error
+ */
 func SendTopicMessage(snsClient *sns.Client, msg string) error {
 	topicArn := os.Getenv("SNS_TOPIC_ARN")
 

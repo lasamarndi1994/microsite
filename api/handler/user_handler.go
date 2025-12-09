@@ -12,6 +12,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+/*
+* Update user profile
+* @param c *gin.Context
+* @return gin.JSON
+ */
 func UpdateProfile(c *gin.Context) {
 	data, _ := c.Get("user")
 	user, _ := data.(model.User)
@@ -44,6 +49,11 @@ func UpdateProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, service.SuccessResponse("Successfully updated."))
 }
 
+/*
+* Upload user profile image
+* @param c *gin.Context
+* @return gin.JSON
+ */
 func UploadprofileImage(c *gin.Context) {
 
 	data, _ := c.Get("user")

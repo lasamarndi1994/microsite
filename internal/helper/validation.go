@@ -13,6 +13,11 @@ type FieldErrorResponse struct {
 	Error   map[string]string `json:"errors"`
 }
 
+/*
+* Format validation errors
+* @param err error
+* @return map[string]string
+ */
 func FormatValidationError(err error) map[string]string {
 	errors := map[string]string{}
 
@@ -42,6 +47,11 @@ func FormatValidationError(err error) map[string]string {
 	return errors
 }
 
+/*
+* Format database duplicate entry errors (v1)
+* @param err error
+* @return map[string]string
+ */
 func DataBaseValidationError1(err error) map[string]string {
 	if err == nil || !strings.Contains(err.Error(), "Duplicate entry") {
 		return nil
@@ -77,11 +87,21 @@ func DataBaseValidationError1(err error) map[string]string {
 	}
 }
 
+/*
+* Convert string to snake_case
+* @param str string
+* @return string
+ */
 func toSnakeCase(str string) string {
 	snake := regexp.MustCompile("([a-z0-9])([A-Z])").ReplaceAllString(str, "${1}_${2}")
 	return strings.ToLower(snake)
 }
 
+/*
+* Format database duplicate entry errors
+* @param err error
+* @return *FieldErrorResponse
+ */
 func DataBaseValidationError(err error) *FieldErrorResponse {
 
 	if err == nil || !strings.Contains(err.Error(), "Duplicate entry") {

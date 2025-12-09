@@ -14,15 +14,32 @@ import (
 	"gorm.io/gorm"
 )
 
+/*
+* Hash password using bcrypt
+* @param password string
+* @return string
+ */
 func HashPassword(password string) string {
 	bytes, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	return string(bytes)
 }
+
+/*
+* Check if password matches hash
+* @param hashedPassword string
+* @param password string
+* @return bool
+ */
 func CheckPassword(hashedPassword, password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	return err == nil
 }
 
+/*
+* Generate random token
+* @param n int
+* @return string
+ */
 func GenerateToken(n int) string {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
@@ -34,10 +51,18 @@ func GenerateToken(n int) string {
 	return sb.String()
 }
 
+/*
+* Generate random user ID
+* @return string
+ */
 func GenerateUserID() string {
 	return strconv.Itoa(100000 + rand.Intn(900000)) // generates 6-digit number (100000–999999)
 }
 
+/*
+* Generate 6-digit OTP
+* @return int64, error
+ */
 func GenerateOTP() (int64, error) {
 	max := big.NewInt(1000000)             // 0 - 999999
 	n, err := crand.Int(crand.Reader, max) //  two return values
@@ -47,6 +72,14 @@ func GenerateOTP() (int64, error) {
 	return n.Int64(), nil // always 6 digits
 }
 
+/*
+* Generate unique slug for model
+* @param db *gorm.DB
+* @param title string
+* @param model interface{}
+* @param field string
+* @return string
+ */
 func GenerateUniqueSlug(db *gorm.DB, title string, model interface{}, field string) string {
 	baseSlug := slug.Make(title)
 	uniqueSlug := baseSlug
@@ -67,9 +100,11 @@ func GenerateUniqueSlug(db *gorm.DB, title string, model interface{}, field stri
 	return uniqueSlug
 }
 
-// MaskEmail masks the email address
-// Format: first 4 chars + ** + last 2 chars before @ + domain
-// If local part is too short, returns as is or minimal masking
+/*
+* Mask email address for privacy
+* @param email string
+* @return string
+ */
 func MaskEmail(email string) string {
 	parts := strings.Split(email, "@")
 	if len(parts) != 2 {

@@ -7,6 +7,10 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
+/*
+* Start cron jobs
+* @return void
+ */
 func StartCron() {
 	c := cron.New(cron.WithSeconds()) // Important!
 	c.AddFunc("*/1 * * * * *", func() {

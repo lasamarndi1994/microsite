@@ -14,6 +14,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+/*
+* Get all microsites for the authenticated user
+* @param c *gin.Context
+* @return gin.JSON
+ */
 func GetMicroSite(c *gin.Context) {
 	// Get the authenticated user
 	data, exists := c.Get("user")
@@ -81,6 +86,11 @@ func GetMicroSite(c *gin.Context) {
 	})
 }
 
+/*
+* Get details of a specific microsite
+* @param c *gin.Context
+* @return gin.JSON
+ */
 func GetMicrositeDetails(c *gin.Context) {
 	// Get the authenticated user
 	data, exists := c.Get("user")
@@ -118,6 +128,11 @@ func GetMicrositeDetails(c *gin.Context) {
 	})
 }
 
+/*
+* Create a new microsite
+* @param c *gin.Context
+* @return gin.JSON
+ */
 func CreateMicrosite(c *gin.Context) {
 	data, _ := c.Get("user")
 	user, _ := data.(model.User)
@@ -182,6 +197,11 @@ func CreateMicrosite(c *gin.Context) {
 	c.JSON(http.StatusAccepted, service.SuccessResponse("Successfully created your micro site."))
 }
 
+/*
+* Update an existing microsite
+* @param c *gin.Context
+* @return gin.JSON
+ */
 func UpdateMicrosite(c *gin.Context) {
 	data, _ := c.Get("user")
 	user, _ := data.(model.User)
@@ -255,6 +275,12 @@ func UpdateMicrosite(c *gin.Context) {
 	database.DB.Save(&existing)
 	c.JSON(http.StatusOK, service.SuccessResponse("Microsite updated successfully"))
 }
+
+/*
+* Delete a microsite
+* @param c *gin.Context
+* @return gin.JSON
+ */
 func DeleteMicrosite(c *gin.Context) {
 	id := c.Param("id")
 	if err := database.DB.Delete(&model.MicroSite{}, id).Error; err != nil {

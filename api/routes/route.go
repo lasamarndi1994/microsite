@@ -10,6 +10,10 @@ import (
 	"golang.org/x/time/rate"
 )
 
+/*
+* Setup the router
+* @return *gin.Engine
+ */
 func SetupRouter() *gin.Engine {
 	router := gin.Default()
 	router.Use(middleware.CORSMiddleware())

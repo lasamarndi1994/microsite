@@ -10,6 +10,10 @@ import (
 	"time"
 )
 
+/*
+* Seed fake users for testing
+* @return void
+ */
 func SeedFakeUsers() {
 	fmt.Println("Starting user seeding...")
 	count := 20000

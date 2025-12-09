@@ -6,6 +6,12 @@ type FieldResponse struct {
 	Data    interface{} `json:"data,omitempty"`
 }
 
+/*
+* Create success response
+* @param message string
+* @param data ...interface{}
+* @return interface{}
+ */
 func SuccessResponse(message string, data ...interface{}) interface{} {
 	response := &FieldResponse{
 		Status:  true,
@@ -17,6 +23,11 @@ func SuccessResponse(message string, data ...interface{}) interface{} {
 	return response
 }
 
+/*
+* Create error response
+* @param message string
+* @return interface{}
+ */
 func ErrorResponse(message string) interface{} {
 	return &FieldResponse{
 		Status:  false,

@@ -9,6 +9,11 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+/*
+* Generate JWT token for user
+* @param user model.User
+* @return string, error
+ */
 func GenerateJWT(user model.User) (string, error) {
 	cfg := config.LoadConfig()
 	secret := cfg.JWTSecretKey

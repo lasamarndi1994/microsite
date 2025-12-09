@@ -11,6 +11,10 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+/*
+* Middleware to authenticate user via JWT
+* @return gin.HandlerFunc
+ */
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")

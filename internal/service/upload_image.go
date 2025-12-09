@@ -6,6 +6,13 @@ import (
 	"strings"
 )
 
+/*
+* Upload Base64 image
+* @param imgData string
+* @param fileName string
+* @param path string
+* @return bool
+ */
 func UploadBase64Image(imgData string, fileName string, path string) bool {
 	os.MkdirAll("./uploads/"+path, os.ModePerm)
 	// Remove Base64 header part: "data:image/png;base64,"
