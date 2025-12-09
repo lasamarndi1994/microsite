@@ -20,7 +20,7 @@ func SetupRouter() *gin.Engine {
 
 	api := router.Group("/api")
 	api.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"I am fine": 200})
+		c.JSON(http.StatusOK, gin.H{"I am fine, Server also working fine": 200})
 	})
 	api.POST("/validate-mobile-number", handler.ValidateMobileNumber)
 	api.POST("/auth/login", handler.HandleLogin)
