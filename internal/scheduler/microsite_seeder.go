@@ -79,9 +79,8 @@ func SeedFakeMicrosites() {
 		for j := 0; j < numLinks; j++ {
 			originalLink := links[rand.Intn(len(links))]
 			ms.SocialLinks = append(ms.SocialLinks, model.SocialLink{
-				Name:   originalLink,
 				Url:    "https://" + originalLink + ".com/user" + strconv.Itoa(i),
-				Type:   originalLink,
+				Name:   originalLink,
 				UserId: userID,
 			})
 		}

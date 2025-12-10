@@ -32,10 +32,10 @@ func SetupRouter() *gin.Engine {
 	api.POST("/update-profile", handler.UpdateProfile)
 	api.POST("/update-profile-image", handler.UploadprofileImage)
 	api.GET("/microsite/lists", handler.GetMicroSite)
-	api.GET("/microsite/details/:id", handler.GetMicrositeDetails)
+	api.GET("/microsite/details/:uuid", handler.GetMicrositeDetails)
 	api.POST("/microsite/create", handler.CreateMicrosite)
-	api.PUT("/microsite/update/:id", handler.UpdateMicrosite)
-	api.DELETE("/microsite/delete/:id", handler.DeleteMicrosite)
+	api.PUT("/microsite/update/:uuid", handler.UpdateMicrosite)
+	api.DELETE("/microsite/delete/:uuid", handler.DeleteMicrosite)
 
 	api.POST("/lead/create", handler.CreateLead)
 	api.GET("/microsite/:id/leads", handler.GetLeads)
@@ -43,6 +43,7 @@ func SetupRouter() *gin.Engine {
 
 	admin := router.Group("/api/admin")
 	admin.POST("/login", handler.AdminHandleLogin)
+	admin.POST("/register", handler.AdminRegister)
 
 	// Protected admin routes
 	admin.Use(middleware.AdminAuthMiddleware())

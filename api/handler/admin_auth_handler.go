@@ -51,3 +51,44 @@ func AdminHandleLogin(c *gin.Context) {
 		"token":   token,
 	})
 }
+
+/*
+* Handle admin registration
+* @param c *gin.Context
+* @return gin.JSON
+ */
+func AdminRegister(c *gin.Context) {
+	var req request.AdminRegisterRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		errs := helper.FormatValidationError(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"errors": errs,
+		})
+		return
+	}
+
+	var admin model.Admin
+	// Check if email already exists
+	if err := database.DB.Where("email = ?", req.Email).First(&admin).Error; err == nil {
+		c.JSON(http.StatusBadRequest, service.ErrorResponse("Email already exists"))
+		return
+	}
+
+	// Create new admin
+	newAdmin := model.Admin{
+		Email:    req.Email,
+		Password: helper.HashPassword(req.Password),
+		Status:   true,
+	}
+
+	if err := database.DB.Create(&newAdmin).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to create admin"))
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"status":  true,
+		"message": "Admin registered successfully",
+	})
+}
