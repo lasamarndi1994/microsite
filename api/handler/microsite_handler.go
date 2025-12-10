@@ -58,7 +58,7 @@ func GetMicroSite(c *gin.Context) {
 	// Fetch paginated data
 	var microsites []model.MicroSite
 	if err := query.
-		Select("id, uuid, user_id, title, full_name, description, avatar_icon,slug, banner_image, is_draft,status, created_at").
+		Select("id, uuid, user_id, title,sub_title, full_name, description, avatar_icon,slug, banner_image, is_draft,status, created_at").
 		Preload("User", func(db *gorm.DB) *gorm.DB {
 			return db.Select("id, user_name, email, slug, mobile_number")
 		}).
@@ -92,7 +92,7 @@ func GetMicrositeDetails(c *gin.Context) {
 	// Get the authenticated user
 	user := c.MustGet("user").(model.User)
 	// Get microsite ID from URL parameter
-	id := c.Param("id")
+	id := c.Param("uuid")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, service.ErrorResponse("Microsite ID is required"))
 		return
@@ -100,7 +100,8 @@ func GetMicrositeDetails(c *gin.Context) {
 
 	// Fetch microsite with related data
 	var microsite model.MicroSite
-	if err := database.DB.Where("id = ? AND user_id = ?", id, user.Id).
+	if err := database.DB.Where("uuid = ? AND user_id = ?", id, user.Id).
+		Preload("User").
 		Preload("Services").
 		Preload("SocialLinks").
 		First(&microsite).Error; err != nil {
@@ -175,7 +176,7 @@ func CreateMicrosite(c *gin.Context) {
 	for _, social := range req.SocialLink {
 		micro_site.SocialLinks = append(micro_site.SocialLinks, model.SocialLink{
 			UserId: user.Id,
-			Type:   social.Type,
+			Name:   social.Name,
 			Url:    social.Url,
 		})
 	}
@@ -194,10 +195,10 @@ func CreateMicrosite(c *gin.Context) {
  */
 func UpdateMicrosite(c *gin.Context) {
 	user := c.MustGet("user").(model.User)
-	id := c.Param("id")
+	id := c.Param("uuid")
 
 	var existing model.MicroSite
-	if err := database.DB.Preload("Services").Preload("SocialLinks").First(&existing, id).Error; err != nil {
+	if err := database.DB.Preload("Services").Preload("SocialLinks").First(&existing, "uuid = ? AND user_id = ?", id, user.Id).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Microsite not found"})
 		return
 	}
@@ -216,7 +217,7 @@ func UpdateMicrosite(c *gin.Context) {
 	existing.FullName = req.FullName
 	existing.Title = req.Title
 	existing.Description = req.Description
-	existing.IsDraft = req.IsDraft
+	//existing.IsDraft = req.IsDraft
 
 	randName := fmt.Sprintf("%d", os.Getpid())
 	if req.AvatarIcon != "" {
@@ -240,8 +241,8 @@ func UpdateMicrosite(c *gin.Context) {
 
 	// DELETE Children First
 
-	database.DB.Where("micro_site_id = ?", id).Delete(&model.Service{})
-	database.DB.Where("micro_site_id = ?", id).Delete(&model.SocialLink{})
+	database.DB.Where("micro_site_id = ?", existing.Id).Delete(&model.Service{})
+	database.DB.Where("micro_site_id = ?", existing.Id).Delete(&model.SocialLink{})
 	existing.Services = []model.Service{}
 	existing.SocialLinks = []model.SocialLink{}
 
@@ -257,7 +258,7 @@ func UpdateMicrosite(c *gin.Context) {
 	for _, social := range req.SocialLink {
 		existing.SocialLinks = append(existing.SocialLinks, model.SocialLink{
 			MicroSiteId: existing.Id,
-			Type:        social.Type,
+			Name:        social.Name,
 			Url:         social.Url,
 		})
 	}
@@ -271,8 +272,8 @@ func UpdateMicrosite(c *gin.Context) {
 * @return gin.JSON
  */
 func DeleteMicrosite(c *gin.Context) {
-	id := c.Param("id")
-	if err := database.DB.Delete(&model.MicroSite{}, id).Error; err != nil {
+	uuid := c.Param("uuid")
+	if err := database.DB.Delete(&model.MicroSite{}, "uuid = ?", uuid).Error; err != nil {
 		c.JSON(http.StatusBadRequest, service.ErrorResponse("Failed to delete microsite"))
 		return
 	}

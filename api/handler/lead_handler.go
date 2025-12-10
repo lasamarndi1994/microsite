@@ -39,7 +39,7 @@ func CreateLead(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, service.SuccessResponse("Lead created successfully", lead))
+	c.JSON(http.StatusCreated, service.SuccessResponse("Thanks for join with me."))
 }
 
 /*

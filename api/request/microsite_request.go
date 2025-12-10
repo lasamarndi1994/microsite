@@ -21,6 +21,6 @@ type ServiceRequest struct {
 
 type SocialRequest struct {
 	MicroSiteId uint   `json:"micro_site_id"`
-	Type        string `json:"type"`
+	Name        string `json:"name"`
 	Url         string `json:"url"`
 }
