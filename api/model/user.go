@@ -1,6 +1,8 @@
 package model
 
 import (
+	"micro-site/internal/helper"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -11,6 +13,7 @@ type User struct {
 	UserName         string    `json:"user_name" gorm:"size:256;not null"`
 	Email            string    `json:"email" gorm:"unique;unique_email"`
 	MobileNumber     int       `json:"mobile_number" gorm:"unique;default null"`
+	Slug             string    `json:"slug" gorm:"unique;default null"`
 	Status           string    `json:"status" gorm:"type:enum('Active','Pending','Approved','Deactive');default:'Active';not null"`
 	AboutMe          string    `json:"about_me"`
 	BusinessName     string    `json:"business_name"  gorm:"size:256"`
@@ -26,6 +29,7 @@ type User struct {
  */
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	u.Uuid = uuid.New() // NOT uuid.UUID{}
+	u.Slug = helper.GenerateUniqueSlug(tx, u.UserName, &User{}, "slug")
 	return
 }
 

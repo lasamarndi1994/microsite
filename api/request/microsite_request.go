@@ -3,6 +3,9 @@ package request
 type MicrositeRequest struct {
 	FullName     string           `json:"full_name" binding:"required"`
 	Title        string           `json:"title" binding:"required"`
+	SubTitle     string           `json:"sub_title"`
+	BusinessName string           `json:"business_name" binding:"required"`
+	Location     string           `json:"location" binding:"required"`
 	Description  string           `json:"description" binding:"required"`
 	IsDraft      string           `json:"is_draft"`
 	AvatarIcon   string           `json:"avatar_icon"`

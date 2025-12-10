@@ -17,6 +17,7 @@ import (
 func SetupRouter() *gin.Engine {
 	router := gin.Default()
 	router.Use(middleware.CORSMiddleware())
+	router.Static("/uploads", "./uploads")
 
 	api := router.Group("/api")
 	api.GET("/health", func(c *gin.Context) {
@@ -38,6 +39,7 @@ func SetupRouter() *gin.Engine {
 
 	api.POST("/lead/create", handler.CreateLead)
 	api.GET("/microsite/:id/leads", handler.GetLeads)
+	api.GET("/microsite/view/:slug1/:slug2", handler.GetMicrositeSlugDetails)
 
 	admin := router.Group("/api/admin")
 	admin.POST("/login", handler.AdminHandleLogin)
