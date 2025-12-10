@@ -8,8 +8,8 @@ import (
 	"micro-site/internal/helper"
 	"micro-site/internal/service"
 	"net/http"
-	"os"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -58,7 +58,6 @@ func GetMicroSite(c *gin.Context) {
 	// Fetch paginated data
 	var microsites []model.MicroSite
 	if err := query.
-		Select("id, uuid, user_id, title,sub_title, full_name, description, avatar_icon,slug, banner_image, is_draft,status, created_at").
 		Preload("User", func(db *gorm.DB) *gorm.DB {
 			return db.Select("id, user_name, email, slug, mobile_number")
 		}).
@@ -145,7 +144,7 @@ func CreateMicrosite(c *gin.Context) {
 	micro_site.Description = req.Description
 	micro_site.IsDraft = req.IsDraft
 
-	randName := fmt.Sprintf("%d", os.Getpid())
+	randName := fmt.Sprintf("%d", time.Now().UnixNano())
 	if req.AvatarIcon != "" {
 		file_name := strconv.FormatUint(uint64(user.Id), 10) + user.UserName + randName + ".png"
 		if service.UploadBase64Image(req.AvatarIcon, file_name, "avatar") {
@@ -216,10 +215,14 @@ func UpdateMicrosite(c *gin.Context) {
 	// Update Parent Data
 	existing.FullName = req.FullName
 	existing.Title = req.Title
+	existing.SubTitle = req.SubTitle
 	existing.Description = req.Description
+	existing.BusinessName = req.BusinessName
+	existing.Location = req.Location
+	existing.Status = "Pending"
 	//existing.IsDraft = req.IsDraft
 
-	randName := fmt.Sprintf("%d", os.Getpid())
+	randName := fmt.Sprintf("%d", time.Now().UnixNano())
 	if req.AvatarIcon != "" {
 		file_name := strconv.FormatUint(uint64(user.Id), 10) + user.UserName + randName + ".png"
 		if service.UploadBase64Image(req.AvatarIcon, file_name, "avatar") {
@@ -307,5 +310,33 @@ func GetMicrositeSlugDetails(c *gin.Context) {
 		"status":  true,
 		"message": "Microsite details fetched successfully",
 		"data":    microsite,
+	})
+}
+
+/*
+* Search microsite by name
+* @param c *gin.Context
+* @return gin.JSON
+ */
+func SearchMicrosite(c *gin.Context) {
+	user := c.MustGet("user").(model.User)
+	name := c.Query("name")
+
+	var microsites []model.MicroSite
+	query := database.DB.Where("user_id = ?", user.Id)
+
+	if name != "" {
+		query = query.Where("title LIKE ?", "%"+name+"%")
+	}
+
+	if err := query.Find(&microsites).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to fetch microsites"))
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "Microsites fetched successfully",
+		"data":    microsites,
 	})
 }
