@@ -58,7 +58,7 @@ func GetMicroSite(c *gin.Context) {
 	// Fetch paginated data
 	var microsites []model.MicroSite
 	if err := query.
-		Select("id, uuid, user_id, title, full_name, description, avatar_icon,slug, banner_image, is_draft,status, created_at").
+		Select("id, uuid, user_id, title,sub_title, full_name, description, avatar_icon,slug, banner_image, is_draft,status, created_at").
 		Preload("User", func(db *gorm.DB) *gorm.DB {
 			return db.Select("id, user_name, email, slug, mobile_number")
 		}).

@@ -16,6 +16,8 @@
 coverage.*
 *.coverprofile
 profile.cov
+uploads/
+uploads/*
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
@@ -23,6 +25,7 @@ profile.cov
 # Go workspace file
 go.work
 go.work.sum
+main.exe
 
 # env file
 .env
