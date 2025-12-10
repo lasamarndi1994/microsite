@@ -17,7 +17,7 @@ import (
 func SetupRouter() *gin.Engine {
 	router := gin.Default()
 	router.Use(middleware.CORSMiddleware())
-	router.Static("/uploads", "./uploads")
+	router.Static("/api/uploads", "./uploads")
 
 	api := router.Group("/api")
 	api.GET("/health", func(c *gin.Context) {
