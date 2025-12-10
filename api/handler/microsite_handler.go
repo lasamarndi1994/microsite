@@ -12,6 +12,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 /*
@@ -56,8 +57,13 @@ func GetMicroSite(c *gin.Context) {
 
 	// Fetch paginated data
 	var microsites []model.MicroSite
-	if err := query.Preload("Services").
+	if err := query.
+		Select("id, uuid, user_id, title, full_name, description, avatar_icon,slug, banner_image, is_draft,status, created_at").
+		Preload("User", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, user_name, email, slug, mobile_number")
+		}).
 		Preload("SocialLinks").
+		Order("created_at desc").
 		Limit(limit).
 		Offset(offset).
 		Find(&microsites).Error; err != nil {
@@ -132,6 +138,9 @@ func CreateMicrosite(c *gin.Context) {
 	micro_site.UserId = user.Id
 	micro_site.Title = req.Title
 	micro_site.FullName = req.FullName
+	micro_site.SubTitle = req.SubTitle
+	micro_site.BusinessName = req.BusinessName
+	micro_site.Location = req.Location
 	micro_site.Description = req.Description
 	micro_site.IsDraft = req.IsDraft
 
@@ -268,4 +277,34 @@ func DeleteMicrosite(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusAccepted, service.SuccessResponse("Microsite deleted successfully"))
+}
+
+/*
+* Get microsite details by slug
+* @param c *gin.Context
+* @return gin.JSON
+ */
+
+func GetMicrositeSlugDetails(c *gin.Context) {
+	slug1 := c.Param("slug1") // User slug
+	slug2 := c.Param("slug2") // Microsite slug
+
+	var microsite model.MicroSite
+
+	if err := database.DB.
+		Joins("JOIN users ON users.id = micro_sites.user_id").
+		Where("users.slug = ? AND micro_sites.slug = ?", slug1, slug2).
+		Preload("User").
+		Preload("Services").
+		Preload("SocialLinks").
+		First(&microsite).Error; err != nil {
+		c.JSON(http.StatusNotFound, service.ErrorResponse("Microsite not found"))
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "Microsite details fetched successfully",
+		"data":    microsite,
+	})
 }

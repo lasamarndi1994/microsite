@@ -60,5 +60,5 @@ func GetLeads(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, service.SuccessResponse("Leads fetched successfully", leads))
+	c.JSON(http.StatusOK, service.SuccessResponse("Thanks for join with me", leads))
 }

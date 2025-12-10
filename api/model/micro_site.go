@@ -10,10 +10,14 @@ import (
 type MicroSite struct {
 	Id              uint64       `json:"id" gorm:"unique;primaryKey;autoIncrement"`
 	Uuid            uuid.UUID    `json:"uuid" gorm:"size:256;not nul;unique"`
-	UserId          uint64       `json:"user_id" gorm:"index;foreignKey:user_id;constraint:OnDelete:CASCADE;size:256"`
+	UserId          uint64       `json:"user_id" gorm:"not null"`
+	User            User         `json:"user" gorm:"foreignKey:UserId;constraint:OnDelete:CASCADE;"`
 	FullName        string       `json:"full_name" gorm:"size:256"`
 	Title           string       `json:"title" gorm:"size:256;not nul"`
+	SubTitle        string       `json:"sub_title" gorm:"size:256"`
 	Slug            string       `json:"slug" gorm:"size:256;not nul;unique"`
+	BusinessName    string       `json:"business_name" gorm:"size:256"`
+	Location        string       `json:"location" gorm:"size:256"`
 	Description     string       `json:"description"`
 	Status          string       `json:"status" gorm:"type:enum('Active','Pending','Approved','Rejected');default:'Pending';not null"`
 	IsDraft         string       `json:"is_draft" gorm:"type:boolean;default:0"`
@@ -21,8 +25,8 @@ type MicroSite struct {
 	BannerImage     string       `json:"banner_image" gorm:"size:256"`
 	AdminId         uint64       `json:"admin_id"`
 	RejectionReason string       `json:"rejection_reason"`
-	Services        []Service    `gorm:"foreignKey:MicroSiteID;constraint:OnDelete:CASCADE;"`
-	SocialLinks     []SocialLink `gorm:"foreignKey:MicroSiteID;constraint:OnDelete:CASCADE;"`
+	Services        []Service    `json:"services" gorm:"foreignKey:MicroSiteID;constraint:OnDelete:CASCADE;"`
+	SocialLinks     []SocialLink `json:"social_links" gorm:"foreignKey:MicroSiteID;constraint:OnDelete:CASCADE;"`
 	TimeStamp
 }
 
