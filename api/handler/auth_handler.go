@@ -37,7 +37,7 @@ func HandleLogin(c *gin.Context) {
 	// Check if password is provided
 	if input.Password != "" {
 		if !helper.CheckPassword(user.Password, input.Password) {
-			c.JSON(http.StatusBadRequest, service.ErrorResponse("Invalid password"))
+			c.JSON(http.StatusBadRequest, service.ErrorResponse("Enter credentials are invalid."))
 			return
 		}
 		// JWT token genreate
@@ -88,7 +88,6 @@ func HandleLogin(c *gin.Context) {
 * @return gin.JSON
  */
 func UpdatePassword(c *gin.Context) {
-	user := c.MustGet("user").(model.User)
 	var req request.UpdatePasswordRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -100,8 +99,15 @@ func UpdatePassword(c *gin.Context) {
 		return
 	}
 
+	user := model.User{}
+	mobileCheck := database.DB.Where("mobile_number =? ", req.MobileNumber).First(&user)
+	if mobileCheck.RowsAffected == 0 {
+		c.JSON(http.StatusOK, service.ErrorResponse("Enter mobile number is invalid."))
+		return
+	}
+
 	// Hash the new password
-	hashedPassword := helper.HashPassword(req.NewPassword)
+	hashedPassword := helper.HashPassword(req.Password)
 	user.Password = hashedPassword
 
 	if err := database.DB.Save(&user).Error; err != nil {
@@ -132,10 +138,17 @@ func ValidateMobileNumber(c *gin.Context) {
 	result := database.DB.Where("mobile_number = ?", request.MobileNumber).First(&user)
 
 	if result.RowsAffected > 0 {
+		if user.Password != "" {
+			c.JSON(http.StatusOK, service.SuccessResponse("Password is already set.", true))
+			return
+		}
+
+		c.JSON(http.StatusOK, service.SuccessResponse("Password is not set.", false))
+
 		// send otp
 		SendOtp(user)
 		user.Email = helper.MaskEmail(user.Email)
-		c.JSON(http.StatusOK, service.SuccessResponse("OTP is send your email address.", user))
+		// c.JSON(http.StatusOK, service.SuccessResponse("OTP is send your email address.", user))
 		return
 	} else {
 		c.JSON(http.StatusBadRequest, service.ErrorResponse("Enter mobile number doesn't exist."))

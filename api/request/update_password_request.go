@@ -1,6 +1,7 @@
 package request
 
 type UpdatePasswordRequest struct {
-	NewPassword     string `json:"new_password" binding:"required,min=6"`
-	ConfirmPassword string `json:"confirm_password" binding:"required,eqfield=NewPassword"`
+	MobileNumber    string `json:"mobile_number" binding:"required"`
+	Password        string `json:"password" binding:"required,min=6"`
+	ConfirmPassword string `json:"confirm_password" binding:"required,eqfield=Password"`
 }
