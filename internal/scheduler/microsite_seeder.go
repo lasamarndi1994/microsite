@@ -57,8 +57,7 @@ func SeedFakeMicrosites() {
 			Title:       title,
 			Slug:        slug,
 			Description: "This is a fake microsite.",
-			Status:      "Active",
-			IsDraft:     "0",
+			Status:      "Pending",
 			AvatarIcon:  "default_avatar.png",
 			BannerImage: "default_banner.png",
 		}

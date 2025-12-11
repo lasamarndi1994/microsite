@@ -8,8 +8,8 @@ import (
 	"micro-site/internal/helper"
 	"micro-site/internal/service"
 	"net/http"
-	"os"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -43,6 +43,7 @@ func GetMicroSite(c *gin.Context) {
 			"Approved": true,
 			"Rejected": true,
 			"Active":   true,
+			"Draft":    true,
 		}
 		if !validStatuses[status] {
 			c.JSON(http.StatusBadRequest, service.ErrorResponse("Invalid status. Valid values are: Pending, Approved, Rejected, Active"))
@@ -58,7 +59,6 @@ func GetMicroSite(c *gin.Context) {
 	// Fetch paginated data
 	var microsites []model.MicroSite
 	if err := query.
-		Select("id, uuid, user_id, title,sub_title, full_name, description, avatar_icon,slug, banner_image, is_draft,status, created_at").
 		Preload("User", func(db *gorm.DB) *gorm.DB {
 			return db.Select("id, user_name, email, slug, mobile_number")
 		}).
@@ -143,20 +143,26 @@ func CreateMicrosite(c *gin.Context) {
 	micro_site.BusinessName = req.BusinessName
 	micro_site.Location = req.Location
 	micro_site.Description = req.Description
-	micro_site.IsDraft = req.IsDraft
+	//micro_site.IsDraft = req.IsDraft
+	if req.RequestType == "Draft" {
+		micro_site.Status = "Draft"
+	} else {
+		micro_site.Status = "Pending"
+	}
 
-	randName := fmt.Sprintf("%d", os.Getpid())
+	randName := fmt.Sprintf("%d", time.Now().UnixNano())
 	if req.AvatarIcon != "" {
-		file_name := strconv.FormatUint(uint64(user.Id), 10) + user.UserName + randName + ".png"
+		file_name := strconv.FormatUint(uint64(user.Id), 10) + user.Slug + randName + ".png"
 		if service.UploadBase64Image(req.AvatarIcon, file_name, "avatar") {
 			micro_site.AvatarIcon = file_name
+			user.UserAvatar = file_name
 		} else {
 			c.JSON(http.StatusInternalServerError, service.ErrorResponse("File upload failed"))
 			return
 		}
 	}
 	if req.BannerImage != "" {
-		file_name := strconv.FormatUint(uint64(user.Id), 10) + user.UserName + randName + ".png"
+		file_name := strconv.FormatUint(uint64(user.Id), 10) + user.Slug + randName + ".png"
 		if service.UploadBase64Image(req.BannerImage, file_name, "banner") {
 			micro_site.BannerImage = file_name
 		} else {
@@ -164,6 +170,14 @@ func CreateMicrosite(c *gin.Context) {
 			return
 		}
 	}
+
+	// Update User Data
+	user.UserName = req.FullName
+	user.BusinessName = req.BusinessName
+	user.BusinessLocation = req.Location
+	user.AboutMe = req.Description
+	user.UserAvatar = micro_site.AvatarIcon
+	database.DB.Save(&user)
 	// Convert service
 	for _, serviceName := range req.ServicesName {
 		micro_site.Services = append(micro_site.Services, model.Service{
@@ -216,14 +230,23 @@ func UpdateMicrosite(c *gin.Context) {
 	// Update Parent Data
 	existing.FullName = req.FullName
 	existing.Title = req.Title
+	existing.SubTitle = req.SubTitle
 	existing.Description = req.Description
-	//existing.IsDraft = req.IsDraft
+	existing.BusinessName = req.BusinessName
+	existing.Location = req.Location
 
-	randName := fmt.Sprintf("%d", os.Getpid())
+	if req.RequestType == "Draft" {
+		existing.Status = "Draft"
+	} else {
+		existing.Status = "Pending"
+	}
+
+	randName := fmt.Sprintf("%d", time.Now().UnixNano())
 	if req.AvatarIcon != "" {
-		file_name := strconv.FormatUint(uint64(user.Id), 10) + user.UserName + randName + ".png"
+		file_name := strconv.FormatUint(uint64(user.Id), 10) + user.Slug + randName + ".png"
 		if service.UploadBase64Image(req.AvatarIcon, file_name, "avatar") {
 			existing.AvatarIcon = file_name
+			user.UserAvatar = file_name
 		} else {
 			c.JSON(http.StatusInternalServerError, service.ErrorResponse("File upload failed"))
 			return
@@ -238,6 +261,14 @@ func UpdateMicrosite(c *gin.Context) {
 			return
 		}
 	}
+
+	// Update User Data
+	user.UserName = req.FullName
+	user.BusinessName = req.BusinessName
+	user.BusinessLocation = req.Location
+	user.AboutMe = req.Description
+	user.UserAvatar = existing.AvatarIcon
+	database.DB.Save(&user)
 
 	// DELETE Children First
 
@@ -307,5 +338,33 @@ func GetMicrositeSlugDetails(c *gin.Context) {
 		"status":  true,
 		"message": "Microsite details fetched successfully",
 		"data":    microsite,
+	})
+}
+
+/*
+* Search microsite by name
+* @param c *gin.Context
+* @return gin.JSON
+ */
+func SearchMicrosite(c *gin.Context) {
+	user := c.MustGet("user").(model.User)
+	name := c.Query("name")
+
+	var microsites []model.MicroSite
+	query := database.DB.Where("user_id = ?", user.Id)
+
+	if name != "" {
+		query = query.Where("title LIKE ?", "%"+name+"%")
+	}
+
+	if err := query.Find(&microsites).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to fetch microsites"))
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "Microsites fetched successfully",
+		"data":    microsites,
 	})
 }
