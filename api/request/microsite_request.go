@@ -7,7 +7,7 @@ type MicrositeRequest struct {
 	BusinessName string           `json:"business_name" binding:"required"`
 	Location     string           `json:"location" binding:"required"`
 	Description  string           `json:"description" binding:"required"`
-	IsDraft      string           `json:"is_draft"`
+	RequestType  string           `json:"request_type" binding:"required"`
 	AvatarIcon   string           `json:"avatar_icon"`
 	BannerImage  string           `json:"banner_image"`
 	ServicesName []ServiceRequest `json:"services_name" binding:"required"`

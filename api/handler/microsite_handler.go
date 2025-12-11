@@ -43,6 +43,7 @@ func GetMicroSite(c *gin.Context) {
 			"Approved": true,
 			"Rejected": true,
 			"Active":   true,
+			"Draft":    true,
 		}
 		if !validStatuses[status] {
 			c.JSON(http.StatusBadRequest, service.ErrorResponse("Invalid status. Valid values are: Pending, Approved, Rejected, Active"))
@@ -142,11 +143,16 @@ func CreateMicrosite(c *gin.Context) {
 	micro_site.BusinessName = req.BusinessName
 	micro_site.Location = req.Location
 	micro_site.Description = req.Description
-	micro_site.IsDraft = req.IsDraft
+	//micro_site.IsDraft = req.IsDraft
+	if req.RequestType == "Draft" {
+		micro_site.Status = "Draft"
+	} else {
+		micro_site.Status = "Pending"
+	}
 
 	randName := fmt.Sprintf("%d", time.Now().UnixNano())
 	if req.AvatarIcon != "" {
-		file_name := strconv.FormatUint(uint64(user.Id), 10) + user.UserName + randName + ".png"
+		file_name := strconv.FormatUint(uint64(user.Id), 10) + user.Slug + randName + ".png"
 		if service.UploadBase64Image(req.AvatarIcon, file_name, "avatar") {
 			micro_site.AvatarIcon = file_name
 		} else {
@@ -155,7 +161,7 @@ func CreateMicrosite(c *gin.Context) {
 		}
 	}
 	if req.BannerImage != "" {
-		file_name := strconv.FormatUint(uint64(user.Id), 10) + user.UserName + randName + ".png"
+		file_name := strconv.FormatUint(uint64(user.Id), 10) + user.Slug + randName + ".png"
 		if service.UploadBase64Image(req.BannerImage, file_name, "banner") {
 			micro_site.BannerImage = file_name
 		} else {
@@ -219,12 +225,16 @@ func UpdateMicrosite(c *gin.Context) {
 	existing.Description = req.Description
 	existing.BusinessName = req.BusinessName
 	existing.Location = req.Location
-	existing.Status = "Pending"
-	//existing.IsDraft = req.IsDraft
+
+	if req.RequestType == "Draft" {
+		existing.Status = "Draft"
+	} else {
+		existing.Status = "Pending"
+	}
 
 	randName := fmt.Sprintf("%d", time.Now().UnixNano())
 	if req.AvatarIcon != "" {
-		file_name := strconv.FormatUint(uint64(user.Id), 10) + user.UserName + randName + ".png"
+		file_name := strconv.FormatUint(uint64(user.Id), 10) + user.Slug + randName + ".png"
 		if service.UploadBase64Image(req.AvatarIcon, file_name, "avatar") {
 			existing.AvatarIcon = file_name
 		} else {
