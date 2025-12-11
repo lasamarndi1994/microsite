@@ -31,6 +31,7 @@ func SetupRouter() *gin.Engine {
 	api.POST("/lead/create", handler.CreateLead)
 
 	api.Use(middleware.AuthMiddleware())
+	api.GET("/auth/user", handler.GetAuthUserDetails)
 	api.POST("/update-profile", handler.UpdateProfile)
 	api.POST("/update-profile-image", handler.UploadprofileImage)
 	api.GET("/microsite/lists", handler.GetMicroSite)

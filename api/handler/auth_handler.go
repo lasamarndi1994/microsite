@@ -138,3 +138,8 @@ func SendOtp(user model.User) {
 	// 	OtpNumber: int32(email_otp),
 	// })
 }
+
+func GetAuthUserDetails(c *gin.Context) {
+	user := c.MustGet("user").(model.User)
+	c.JSON(http.StatusOK, service.SuccessResponse("User details fetched successfully", user))
+}

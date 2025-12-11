@@ -155,6 +155,7 @@ func CreateMicrosite(c *gin.Context) {
 		file_name := strconv.FormatUint(uint64(user.Id), 10) + user.Slug + randName + ".png"
 		if service.UploadBase64Image(req.AvatarIcon, file_name, "avatar") {
 			micro_site.AvatarIcon = file_name
+			user.UserAvatar = file_name
 		} else {
 			c.JSON(http.StatusInternalServerError, service.ErrorResponse("File upload failed"))
 			return
@@ -169,6 +170,14 @@ func CreateMicrosite(c *gin.Context) {
 			return
 		}
 	}
+
+	// Update User Data
+	user.UserName = req.FullName
+	user.BusinessName = req.BusinessName
+	user.BusinessLocation = req.Location
+	user.AboutMe = req.Description
+	user.UserAvatar = micro_site.AvatarIcon
+	database.DB.Save(&user)
 	// Convert service
 	for _, serviceName := range req.ServicesName {
 		micro_site.Services = append(micro_site.Services, model.Service{
@@ -237,6 +246,7 @@ func UpdateMicrosite(c *gin.Context) {
 		file_name := strconv.FormatUint(uint64(user.Id), 10) + user.Slug + randName + ".png"
 		if service.UploadBase64Image(req.AvatarIcon, file_name, "avatar") {
 			existing.AvatarIcon = file_name
+			user.UserAvatar = file_name
 		} else {
 			c.JSON(http.StatusInternalServerError, service.ErrorResponse("File upload failed"))
 			return
@@ -251,6 +261,14 @@ func UpdateMicrosite(c *gin.Context) {
 			return
 		}
 	}
+
+	// Update User Data
+	user.UserName = req.FullName
+	user.BusinessName = req.BusinessName
+	user.BusinessLocation = req.Location
+	user.AboutMe = req.Description
+	user.UserAvatar = existing.AvatarIcon
+	database.DB.Save(&user)
 
 	// DELETE Children First
 
