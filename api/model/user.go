@@ -13,6 +13,7 @@ type User struct {
 	UserName         string    `json:"user_name" gorm:"size:256;not null"`
 	Email            string    `json:"email" gorm:"unique;unique_email"`
 	MobileNumber     int       `json:"mobile_number" gorm:"unique;default null"`
+	Password         string    `json:"password" gorm:"default:null"`
 	Slug             string    `json:"slug" gorm:"unique;default null"`
 	Status           string    `json:"status" gorm:"type:enum('Active','Pending','Approved','Deactive');default:'Active';not null"`
 	AboutMe          string    `json:"about_me"`

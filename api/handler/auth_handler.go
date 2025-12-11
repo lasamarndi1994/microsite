@@ -33,6 +33,29 @@ func HandleLogin(c *gin.Context) {
 		c.JSON(http.StatusOK, service.ErrorResponse("Enter mobile number is invalid."))
 		return
 	}
+
+	// Check if password is provided
+	if input.Password != "" {
+		if !helper.CheckPassword(user.Password, input.Password) {
+			c.JSON(http.StatusBadRequest, service.ErrorResponse("Invalid password"))
+			return
+		}
+		// JWT token genreate
+		token, err := service.GenerateJWT(user)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, service.ErrorResponse("Unable to generate token"))
+			return
+		}
+		c.JSON(http.StatusOK, service.SuccessResponse("Login Successfully", token))
+		return
+	}
+
+	// Fallback to OTP check
+	if input.MobileOtp == "" {
+		c.JSON(http.StatusBadRequest, service.ErrorResponse("OTP is required if password is not provided"))
+		return
+	}
+
 	otpModel := model.Otp{}
 	otpCheck := database.DB.Where("user_id =? ", user.Id).Where("email_otp = ? OR whatapp_otp = ?", input.MobileOtp, input.MobileOtp).Order("created_at DESC").First(&otpModel)
 
@@ -57,6 +80,36 @@ func HandleLogin(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, service.ErrorResponse("Enter OTP is Invalid"))
 		return
 	}
+}
+
+/*
+* Update user password
+* @param c *gin.Context
+* @return gin.JSON
+ */
+func UpdatePassword(c *gin.Context) {
+	user := c.MustGet("user").(model.User)
+	var req request.UpdatePasswordRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		errs := helper.FormatValidationError(err)
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": false,
+			"errors": errs,
+		})
+		return
+	}
+
+	// Hash the new password
+	hashedPassword := helper.HashPassword(req.NewPassword)
+	user.Password = hashedPassword
+
+	if err := database.DB.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to update password"))
+		return
+	}
+
+	c.JSON(http.StatusOK, service.SuccessResponse("Password updated successfully"))
 }
 
 /*

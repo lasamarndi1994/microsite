@@ -29,6 +29,7 @@ func SetupRouter() *gin.Engine {
 	api.POST("/auth/resend-otp", middleware.RateLimitMiddleware(rate.Every(1*time.Minute), 1), handler.ResentOtp)
 
 	api.Use(middleware.AuthMiddleware())
+	api.POST("/auth/update-password", handler.UpdatePassword)
 	api.POST("/update-profile", handler.UpdateProfile)
 	api.POST("/update-profile-image", handler.UploadprofileImage)
 	api.GET("/microsite/lists", handler.GetMicroSite)
