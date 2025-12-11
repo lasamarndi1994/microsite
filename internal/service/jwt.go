@@ -30,3 +30,23 @@ func GenerateJWT(user model.User) (string, error) {
 
 	return token.SignedString([]byte(secret))
 }
+
+/*
+* Generate JWT token for user
+* @param user model.User
+* @return string, error
+ */
+func GenerateAdminJWT(admin model.Admin) (string, error) {
+	cfg := config.LoadConfig()
+	secret := cfg.JWTSecretKey
+
+	claims := jwt.MapClaims{
+		"user_id": admin.Id,
+		"email":   admin.Email,
+		"exp":     time.Now().Add(time.Hour * 24).Unix(), // expires in 24 hours
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	return token.SignedString([]byte(secret))
+}

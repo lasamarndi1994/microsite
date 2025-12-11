@@ -35,21 +35,21 @@ func AdminHandleLogin(c *gin.Context) {
 
 	// Check if admin exists and password matches
 	if checkAdmin.RowsAffected == 0 {
-		c.JSON(http.StatusUnauthorized, service.ErrorResponse("Invalid email or password"))
+		c.JSON(http.StatusBadRequest, service.ErrorResponse("Invalid email or password"))
 		return
 	}
 
 	// Use CheckPassword helper for secure password comparison
 	if !helper.CheckPassword(admin.Password, req.Password) {
-		c.JSON(http.StatusUnauthorized, service.ErrorResponse("Invalid email or password"))
+		c.JSON(http.StatusBadRequest, service.ErrorResponse("Invalid email or password"))
 		return
 	}
-	token := helper.GenerateToken(10)
-	c.JSON(http.StatusOK, gin.H{
-		"status":  true,
-		"message": "Login Successfully ",
-		"token":   token,
-	})
+	token, err := service.GenerateAdminJWT(admin)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Unable to generate token"))
+		return
+	}
+	c.JSON(http.StatusOK, service.SuccessResponse("Login Successfully", token))
 }
 
 /*

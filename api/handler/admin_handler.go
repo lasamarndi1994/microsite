@@ -1,10 +1,12 @@
 package handler
 
 import (
+	"math"
 	"micro-site/api/model"
 	"micro-site/database"
 	"micro-site/internal/service"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,40 +25,54 @@ func GetAllUsers(c *gin.Context) {
 		return
 	}
 
+	// Pagination parameters
+	pageStr := c.DefaultQuery("page", "1")
+	limitStr := c.DefaultQuery("limit", "20")
+
+	page, _ := strconv.Atoi(pageStr)
+	limit, _ := strconv.Atoi(limitStr)
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 10
+	}
+
+	offset := (page - 1) * limit
+
 	// Optional status filter
-	status := c.Query("status")
 
 	// Build query
 	query := database.DB.Model(&model.User{})
 
 	// Apply status filter if provided
-	if status != "" {
-		validStatuses := map[string]bool{
-			"Active":   true,
-			"Pending":  true,
-			"Approved": true,
-			"Deactive": true,
-		}
-		if !validStatuses[status] {
-			c.JSON(http.StatusBadRequest, service.ErrorResponse("Invalid status. Valid values are: Active, Pending, Approved, Deactive"))
-			return
-		}
-		query = query.Where("status = ?", status)
-	}
 
-	// Execute query
+	// Count total records
+	var totalRecords int64
+	query.Count(&totalRecords)
+
+	// Execute query with pagination
 	var users []model.User
-	if err := query.Find(&users).Error; err != nil {
+	if err := query.Limit(limit).Offset(offset).Find(&users).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to fetch users"))
 		return
 	}
 
-	// Return success response
+	// Calculate total pages
+	totalPages := int(math.Ceil(float64(totalRecords) / float64(limit)))
+
+	// Return success response with pagination
 	c.JSON(http.StatusOK, gin.H{
 		"status":  true,
 		"message": "Users fetched successfully",
 		"data":    users,
-		"count":   len(users),
+		"pagination": gin.H{
+			"current_page":  page,
+			"limit":         limit,
+			"total_records": totalRecords,
+			"total_pages":   totalPages,
+		},
 	})
 }
 
