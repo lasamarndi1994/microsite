@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// GetAllUsers - Display all users list
 /*
 * Display all users list
 * @param c *gin.Context
@@ -60,7 +59,6 @@ func GetAllUsers(c *gin.Context) {
 	})
 }
 
-// GetUserMicrosites - Display all microsites for a specific user
 /*
 * Display all microsites for a specific user
 * @param c *gin.Context
@@ -132,7 +130,6 @@ func GetUserMicrosites(c *gin.Context) {
 	})
 }
 
-// GetAllMicrosites - Display all microsites across all users
 /*
 * Display all microsites across all users
 * @param c *gin.Context
@@ -183,7 +180,6 @@ func GetAllMicrosites(c *gin.Context) {
 	})
 }
 
-// ApproveMicrosite - Approve a pending microsite
 /*
 * Approve a pending microsite
 * @param c *gin.Context
@@ -242,7 +238,6 @@ func ApproveMicrosite(c *gin.Context) {
 	})
 }
 
-// RejectMicrosite - Reject a microsite with comment
 /*
 * Reject a microsite with comment
 * @param c *gin.Context
@@ -302,7 +297,6 @@ func RejectMicrosite(c *gin.Context) {
 	})
 }
 
-// AdminDeleteMicrosite - Delete any microsite (admin privilege)
 /*
 * Delete any microsite (admin privilege)
 * @param c *gin.Context
@@ -342,4 +336,40 @@ func AdminDeleteMicrosite(c *gin.Context) {
 		"message":    "Microsite deleted successfully",
 		"deleted_id": id,
 	})
+}
+
+// AdminGetMicrositeDetails - Get details of a specific microsite (admin privilege)
+/*
+* Get details of a specific microsite (admin privilege)
+* @param c *gin.Context
+* @return gin.JSON
+ */
+func AdminGetMicrositeDetails(c *gin.Context) {
+	// Get admin from context
+	_, exists := c.Get("admin")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, service.ErrorResponse("Admin authentication required"))
+		return
+	}
+
+	// Get microsite ID from URL parameter
+	uuid := c.Param("uuid")
+	if uuid == "" {
+		c.JSON(http.StatusBadRequest, service.ErrorResponse("Microsite ID is required"))
+		return
+	}
+
+	// Fetch microsite with related data
+	var microsite model.MicroSite
+	if err := database.DB.Where("uuid = ?", uuid).
+		Preload("User").
+		Preload("Services").
+		Preload("SocialLinks").
+		First(&microsite).Error; err != nil {
+		c.JSON(http.StatusNotFound, service.ErrorResponse("Microsite not found"))
+		return
+	}
+
+	// Return success response
+	c.JSON(http.StatusOK, service.SuccessResponse("Microsite details fetched successfully", microsite))
 }

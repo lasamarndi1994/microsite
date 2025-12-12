@@ -52,9 +52,10 @@ func SetupRouter() *gin.Engine {
 	admin.GET("/users", handler.GetAllUsers)
 	admin.GET("/users/:id/microsites", handler.GetUserMicrosites)
 	admin.GET("/microsites", handler.GetAllMicrosites)
-	admin.PUT("/microsite/approve/:id", handler.ApproveMicrosite)
-	admin.PUT("/microsite/reject/:id", handler.RejectMicrosite)
-	admin.DELETE("/microsite/delete/:id", handler.AdminDeleteMicrosite)
+	admin.GET("/microsite/:uuid", handler.AdminGetMicrositeDetails)
+	admin.PUT("/microsite/approve/:uuid", handler.ApproveMicrosite)
+	admin.PUT("/microsite/reject/:uuid", handler.RejectMicrosite)
+	admin.DELETE("/microsite/delete/:uuid", handler.AdminDeleteMicrosite)
 
 	// api.POST("/update-profile", func(c *gin.Context) {
 	// 	c.JSON(200, gin.H{"message": "Authorized user!"})
