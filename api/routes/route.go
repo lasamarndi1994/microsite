@@ -50,7 +50,7 @@ func SetupRouter() *gin.Engine {
 	// Protected admin routes
 	admin.Use(middleware.AdminAuthMiddleware())
 	admin.GET("/users", handler.GetAllUsers)
-	admin.GET("/users/:id/microsites", handler.GetUserMicrosites)
+	admin.GET("/users/:uuid/microsites", handler.GetUserMicrosites)
 	admin.GET("/microsites", handler.GetAllMicrosites)
 	admin.PUT("/microsite/approve/:id", handler.ApproveMicrosite)
 	admin.PUT("/microsite/reject/:id", handler.RejectMicrosite)
