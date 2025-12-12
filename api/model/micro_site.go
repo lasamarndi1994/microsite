@@ -25,6 +25,7 @@ type MicroSite struct {
 	BannerImage     string       `json:"banner_image" gorm:"size:256"`
 	AdminId         uint64       `json:"admin_id"`
 	RejectionReason string       `json:"rejection_reason"`
+	ApproveMessage  string       `json:"approve_message"`
 	Services        []Service    `json:"services" gorm:"foreignKey:MicroSiteID;constraint:OnDelete:CASCADE;"`
 	SocialLinks     []SocialLink `json:"social_links" gorm:"foreignKey:MicroSiteID;constraint:OnDelete:CASCADE;"`
 	TimeStamp

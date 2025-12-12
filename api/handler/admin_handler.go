@@ -244,21 +244,21 @@ func ApproveMicrosite(c *gin.Context) {
 	}
 
 	// Get microsite ID from URL parameter
-	id := c.Param("id")
-	if id == "" {
+	uuid := c.Param("uuid")
+	if uuid == "" {
 		c.JSON(http.StatusBadRequest, service.ErrorResponse("Microsite ID is required"))
 		return
 	}
 
 	// Parse request body for optional comment
 	var reqBody struct {
-		RejectionReason string `json:"rejection_reason"`
+		ApproveMessage string `json:"approve_message"`
 	}
 	c.ShouldBindJSON(&reqBody)
 
 	// Fetch microsite
 	var microsite model.MicroSite
-	if err := database.DB.First(&microsite, id).Error; err != nil {
+	if err := database.DB.Where("uuid = ?", uuid).First(&microsite).Error; err != nil {
 		c.JSON(http.StatusNotFound, service.ErrorResponse("Microsite not found"))
 		return
 	}
@@ -266,8 +266,8 @@ func ApproveMicrosite(c *gin.Context) {
 	// Update microsite status
 	microsite.Status = "Approved"
 	microsite.AdminId = admin.Id
-	if reqBody.RejectionReason != "" {
-		microsite.RejectionReason = reqBody.RejectionReason
+	if reqBody.ApproveMessage != "" {
+		microsite.ApproveMessage = reqBody.ApproveMessage
 	}
 
 	if err := database.DB.Save(&microsite).Error; err != nil {
@@ -302,8 +302,8 @@ func RejectMicrosite(c *gin.Context) {
 	}
 
 	// Get microsite ID from URL parameter
-	id := c.Param("id")
-	if id == "" {
+	uuid := c.Param("uuid")
+	if uuid == "" {
 		c.JSON(http.StatusBadRequest, service.ErrorResponse("Microsite ID is required"))
 		return
 	}
@@ -319,7 +319,7 @@ func RejectMicrosite(c *gin.Context) {
 
 	// Fetch microsite
 	var microsite model.MicroSite
-	if err := database.DB.First(&microsite, id).Error; err != nil {
+	if err := database.DB.Where("uuid = ?", uuid).First(&microsite).Error; err != nil {
 		c.JSON(http.StatusNotFound, service.ErrorResponse("Microsite not found"))
 		return
 	}
@@ -364,7 +364,7 @@ func AdminDeleteMicrosite(c *gin.Context) {
 
 	// Check if microsite exists
 	var microsite model.MicroSite
-	if err := database.DB.First(&microsite, id).Error; err != nil {
+	if err := database.DB.Where("uuid = ?", id).First(&microsite).Error; err != nil {
 		c.JSON(http.StatusNotFound, service.ErrorResponse("Microsite not found"))
 		return
 	}

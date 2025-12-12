@@ -51,12 +51,13 @@ func SetupRouter() *gin.Engine {
 	// Protected admin routes
 	admin.Use(middleware.AdminAuthMiddleware())
 	admin.GET("/users", handler.GetAllUsers)
-	admin.GET("/users/:uuid/microsites", handler.GetUserMicrosites)
+
 	admin.GET("/microsites", handler.GetAllMicrosites)
 	admin.GET("/microsite/:uuid", handler.AdminGetMicrositeDetails)
 	admin.PUT("/microsite/approve/:uuid", handler.ApproveMicrosite)
 	admin.PUT("/microsite/reject/:uuid", handler.RejectMicrosite)
 	admin.DELETE("/microsite/delete/:uuid", handler.AdminDeleteMicrosite)
+	admin.GET("/users/:uuid/microsites", handler.GetUserMicrosites)
 
 	// api.POST("/update-profile", func(c *gin.Context) {
 	// 	c.JSON(200, gin.H{"message": "Authorized user!"})
