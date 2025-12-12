@@ -1,10 +1,12 @@
 package handler
 
 import (
+	"math"
 	"micro-site/api/model"
 	"micro-site/database"
 	"micro-site/internal/service"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,40 +24,73 @@ func GetAllUsers(c *gin.Context) {
 		return
 	}
 
+	// Pagination parameters
+	pageStr := c.DefaultQuery("page", "1")
+	limitStr := c.DefaultQuery("limit", "20")
+
+	page, _ := strconv.Atoi(pageStr)
+	limit, _ := strconv.Atoi(limitStr)
+
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 20
+	}
+
+	offset := (page - 1) * limit
+
 	// Optional status filter
-	status := c.Query("status")
 
 	// Build query
 	query := database.DB.Model(&model.User{})
 
-	// Apply status filter if provided
-	if status != "" {
-		validStatuses := map[string]bool{
-			"Active":   true,
-			"Pending":  true,
-			"Approved": true,
-			"Deactive": true,
-		}
-		if !validStatuses[status] {
-			c.JSON(http.StatusBadRequest, service.ErrorResponse("Invalid status. Valid values are: Active, Pending, Approved, Deactive"))
-			return
-		}
-		query = query.Where("status = ?", status)
+	// Search filter
+	search := c.Query("search")
+	if search != "" {
+		searchLike := "%" + search + "%"
+		query = query.Where("user_name LIKE ? OR email LIKE ? OR mobile_number LIKE ?", searchLike, searchLike, searchLike)
 	}
 
-	// Execute query
+	// Apply status filter if provided
+
+	// Date filter
+	fromDate := c.Query("from_date")
+	toDate := c.Query("to_date")
+
+	if fromDate != "" && toDate != "" {
+		query = query.Where("created_at BETWEEN ? AND ?", fromDate, toDate)
+	} else if fromDate != "" {
+		query = query.Where("created_at >= ?", fromDate)
+	} else if toDate != "" {
+		query = query.Where("created_at <= ?", toDate)
+	}
+
+	// Count total records
+	var totalRecords int64
+	query.Count(&totalRecords)
+
+	// Execute query with pagination
 	var users []model.User
-	if err := query.Find(&users).Error; err != nil {
+	if err := query.Order("updated_at desc").Limit(limit).Offset(offset).Find(&users).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to fetch users"))
 		return
 	}
 
-	// Return success response
+	// Calculate total pages
+	totalPages := int(math.Ceil(float64(totalRecords) / float64(limit)))
+
+	// Return success response with pagination
 	c.JSON(http.StatusOK, gin.H{
 		"status":  true,
 		"message": "Users fetched successfully",
 		"data":    users,
-		"count":   len(users),
+		"pagination": gin.H{
+			"current_page":  page,
+			"limit":         limit,
+			"total_records": totalRecords,
+			"total_pages":   totalPages,
+		},
 	})
 }
 
@@ -72,25 +107,25 @@ func GetUserMicrosites(c *gin.Context) {
 		return
 	}
 
-	// Get user ID from URL parameter
-	userID := c.Param("id")
-	if userID == "" {
-		c.JSON(http.StatusBadRequest, service.ErrorResponse("User ID is required"))
+	// Get user UUID from URL parameter
+	userUUID := c.Param("uuid")
+	if userUUID == "" {
+		c.JSON(http.StatusBadRequest, service.ErrorResponse("User UUID is required"))
 		return
 	}
 
-	// Verify user exists
+	// Verify user exists and get User ID
 	var user model.User
-	// if err := database.DB.First(&user, userID).Error; err != nil {
-	// 	c.JSON(http.st, service.ErrorResponse("User not found"))
-	// 	return
-	// }
+	if err := database.DB.Where("uuid = ?", userUUID).First(&user).Error; err != nil {
+		c.JSON(http.StatusNotFound, service.ErrorResponse("User not found"))
+		return
+	}
 
 	// Optional status filter for microsites
 	status := c.Query("status")
 
-	// Build query for microsites
-	query := database.DB.Where("user_id = ?", userID).
+	// Build query for microsites using User ID
+	query := database.DB.Where("user_id = ? AND status != ?", user.Id, "Draft").
 		Preload("Services").
 		Preload("SocialLinks")
 
@@ -109,6 +144,13 @@ func GetUserMicrosites(c *gin.Context) {
 		query = query.Where("status = ?", status)
 	}
 
+	// Search filter
+	search := c.Query("search")
+	if search != "" {
+		searchLike := "%" + search + "%"
+		query = query.Where("title LIKE ? OR sub_title LIKE ?", searchLike, searchLike)
+	}
+
 	// Fetch microsites
 	var microsites []model.MicroSite
 	if err := query.Find(&microsites).Error; err != nil {
@@ -121,9 +163,12 @@ func GetUserMicrosites(c *gin.Context) {
 		"status":  true,
 		"message": "User microsites fetched successfully",
 		"user": gin.H{
-			"id":        user.Id,
-			"user_name": user.UserName,
-			"email":     user.Email,
+			"id":            user.Id,
+			"user_name":     user.UserName,
+			"email":         user.Email,
+			"mobile_number": user.MobileNumber,
+			"status":        user.Status,
+			"user_avatar":   user.UserAvatar,
 		},
 		"data":  microsites,
 		"count": len(microsites),
