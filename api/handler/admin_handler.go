@@ -153,7 +153,7 @@ func GetUserMicrosites(c *gin.Context) {
 
 	// Fetch microsites
 	var microsites []model.MicroSite
-	if err := query.Find(&microsites).Error; err != nil {
+	if err := query.Order("updated_at desc").Find(&microsites).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to fetch microsites"))
 		return
 	}
@@ -164,6 +164,7 @@ func GetUserMicrosites(c *gin.Context) {
 		"message": "User microsites fetched successfully",
 		"user": gin.H{
 			"id":            user.Id,
+			"uuid":          user.Uuid,
 			"user_name":     user.UserName,
 			"email":         user.Email,
 			"mobile_number": user.MobileNumber,
