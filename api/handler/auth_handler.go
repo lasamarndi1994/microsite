@@ -182,6 +182,91 @@ func ResentOtp(c *gin.Context) {
 }
 
 /*
+* Forgot Password
+* @param c *gin.Context
+* @return gin.JSON
+ */
+func ForgotPassword(c *gin.Context) {
+	var req request.ForgotPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		errs := helper.FormatValidationError(err)
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": false,
+			"errors": errs,
+		})
+		return
+	}
+
+	user := model.User{}
+	result := database.DB.Where("email = ?", req.Email).First(&user)
+	if result.RowsAffected == 0 {
+		// return success to avoid enumerating emails
+		c.JSON(http.StatusOK, service.SuccessResponse("If your email is registered, you will receive an OTP.", nil))
+		return
+	}
+
+	SendOtp(user)
+	c.JSON(http.StatusOK, service.SuccessResponse("OTP sent successfully.", nil))
+}
+
+/*
+* Reset Password
+* @param c *gin.Context
+* @return gin.JSON
+ */
+func ResetPassword(c *gin.Context) {
+	var req request.ResetPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		errs := helper.FormatValidationError(err)
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": false,
+			"errors": errs,
+		})
+		return
+	}
+
+	user := model.User{}
+	if err := database.DB.Where("email = ?", req.Email).First(&user).Error; err != nil {
+		c.JSON(http.StatusBadRequest, service.ErrorResponse("Invalid request"))
+		return
+	}
+
+	otpModel := model.Otp{}
+	// Check for valid, unused OTP within 5 minutes
+	otpCheck := database.DB.Where("user_id = ?", user.Id).
+		Where("email_otp = ?", req.Otp).
+		Order("created_at DESC").
+		First(&otpModel)
+
+	if otpCheck.RowsAffected == 0 {
+		c.JSON(http.StatusBadRequest, service.ErrorResponse("Invalid OTP."))
+		return
+	}
+
+	expireTime := otpModel.CreatedAt.Add(5 * time.Minute)
+	if time.Now().After(expireTime) || otpModel.Status {
+		c.JSON(http.StatusBadRequest, service.ErrorResponse("OTP has expired or already been used."))
+		return
+	}
+
+	// Hash the new password
+	hashedPassword := helper.HashPassword(req.NewPassword)
+	user.Password = hashedPassword
+
+	if err := database.DB.Save(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to reset password"))
+		return
+	}
+
+	// Mark OTP as used
+	otpModel.Status = true
+	database.DB.Save(&otpModel)
+
+	c.JSON(http.StatusOK, service.SuccessResponse("Password reset successfully.", nil))
+
+}
+
+/*
 * Send OTP to user
 * @param user model.User
 * @return void
@@ -198,11 +283,11 @@ func SendOtp(user model.User) {
 	otpModel.UserId = user.Id
 	database.DB.Save(&otpModel)
 
-	// go service.SendHTMLEmail(user.Email, "Welcome !", service.EmailData{
-	// 	Name:      user.UserName,
-	// 	Email:     user.Email,
-	// 	OtpNumber: int32(email_otp),
-	// })
+	go service.SendHTMLEmail(user.Email, "Reset Password OTP", "otp.html", service.EmailData{
+		Name:      user.UserName,
+		Email:     user.Email,
+		OtpNumber: int32(email_otp),
+	})
 }
 
 func GetAuthUserDetails(c *gin.Context) {

@@ -21,12 +21,13 @@ var cfg = config.LoadConfig()
 * Send HTML email
 * @param to string
 * @param subject string
+* @param templateName string
 * @param data EmailData
 * @return error
  */
-func SendHTMLEmail(to string, subject string, data EmailData) error {
+func SendHTMLEmail(to string, subject string, templateName string, data EmailData) error {
 	// Parse HTML file
-	tmpl, err := template.ParseFiles("internal/mail/template/welcome.html")
+	tmpl, err := template.ParseFiles("internal/mail/template/" + templateName)
 	if err != nil {
 		return err
 	}

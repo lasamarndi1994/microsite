@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Your OTP Code</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2>Hello {{.Name}},</h2>
+        <p>You requested a password reset. Your OTP code is:</p>
+        <h1 style="color: #4CAF50; letter-spacing: 5px;">{{.OtpNumber}}</h1>
+        <p>This code will expire in 5 minutes.</p>
+        <p>If you did not request this, please ignore this email.</p>
+        <p>Best regards,<br>The Team</p>
+    </div>
+</body>
+</html>
