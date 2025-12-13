@@ -50,7 +50,7 @@ func CreateLead(c *gin.Context) {
 	}
 
 	// Send data to DigiWeb
-	partnerCode := user.PartnerCode
+	partnerCode := user.UserCode
 	if partnerCode == "" {
 		partnerCode = "ANTIQ"
 	}

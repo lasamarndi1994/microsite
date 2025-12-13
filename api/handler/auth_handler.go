@@ -207,5 +207,10 @@ func SendOtp(user model.User) {
 
 func GetAuthUserDetails(c *gin.Context) {
 	user := c.MustGet("user").(model.User)
+
+	var count int64
+	database.DB.Model(&model.MicroSite{}).Where("user_id = ?", user.Id).Count(&count)
+	user.MicrositeCount = count
+
 	c.JSON(http.StatusOK, service.SuccessResponse("User details fetched successfully", user))
 }

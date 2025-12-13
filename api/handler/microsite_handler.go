@@ -124,6 +124,14 @@ func GetMicrositeDetails(c *gin.Context) {
  */
 func CreateMicrosite(c *gin.Context) {
 	user := c.MustGet("user").(model.User)
+
+	var count int64
+	database.DB.Model(&model.MicroSite{}).Where("user_id = ?", user.Id).Count(&count)
+	if count >= 3 {
+		c.JSON(http.StatusBadRequest, service.ErrorResponse("You can create only 3 microsites."))
+		return
+	}
+
 	var req request.MicrositeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		// Validation errors

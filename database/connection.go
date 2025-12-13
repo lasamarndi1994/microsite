@@ -3,7 +3,6 @@ package database
 import (
 	"fmt"
 	"log"
-	"micro-site/api/model"
 	"micro-site/config"
 
 	_ "github.com/go-sql-driver/mysql" // MySQL driver
@@ -75,8 +74,8 @@ func migration(db *gorm.DB) error {
 	// db.AutoMigrate(model.MicroSite{})
 	// db.AutoMigrate(model.Service{})
 	// db.AutoMigrate(model.SocialLink{})
-	db.AutoMigrate(model.Lead{})
-	db.AutoMigrate(model.LeadExternalLog{})
+	// db.AutoMigrate(model.Lead{})
+	// db.AutoMigrate(model.LeadExternalLog{})
 	// db.AutoMigrate(model.Admin{})
 
 	return nil
