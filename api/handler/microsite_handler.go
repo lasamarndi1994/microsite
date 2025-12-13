@@ -417,6 +417,7 @@ func UpdateMicrositeEngagementCount(c *gin.Context) {
 		var microsite model.MicroSite
 		if err := database.DB.Where("slug = ?", slug).First(&microsite).Error; err != nil {
 			fmt.Println("Microsite not found:", err)
+			return
 		}
 
 		var visitor model.MicrositeVisitor
@@ -432,8 +433,11 @@ func UpdateMicrositeEngagementCount(c *gin.Context) {
 			}
 		} else {
 			// Existing visitor, increment click count
-			database.DB.Model(&visitor).UpdateColumn("engagement_count", gorm.Expr("engagement_count + ?", 1))
+			database.DB.Model(&microsite).UpdateColumn("engagement_count", gorm.Expr("engagement_count + ?", 1))
 		}
+
+		// Update global engagement count
+
 	}()
 	c.JSON(http.StatusOK, service.SuccessResponse("Button click recorded successfully"))
 }

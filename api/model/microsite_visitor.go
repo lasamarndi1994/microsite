@@ -7,6 +7,7 @@ type MicrositeVisitor struct {
 	MicroSiteId uint64    `json:"micro_site_id" gorm:"not null"`
 	MicroSite   MicroSite `json:"micro_site" gorm:"foreignKey:MicroSiteId;constraint:OnDelete:CASCADE;"`
 	IpAddress   string    `json:"ip_address" gorm:"size:256;not null"`
+
 	TimeStamp
 }
 
