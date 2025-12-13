@@ -91,6 +91,9 @@ func CreateLead(c *gin.Context) {
 		}
 
 		database.DB.Create(&logEntry)
+
+		// Update lead count in microsite visitor
+
 	}(lead, partnerCode)
 
 	c.JSON(http.StatusCreated, service.SuccessResponse("Thanks for join with me."))

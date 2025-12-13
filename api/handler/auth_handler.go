@@ -28,7 +28,7 @@ func HandleLogin(c *gin.Context) {
 		return
 	}
 	user := model.User{}
-	mobileCheck := database.DB.Where("mobile_number =? ", input.MobileNumber).First(&user)
+	mobileCheck := database.DB.Where("mobile_number =? AND status = ? ", input.MobileNumber, "Active").First(&user)
 	if mobileCheck.RowsAffected == 0 {
 		c.JSON(http.StatusOK, service.ErrorResponse("Enter mobile number is invalid."))
 		return

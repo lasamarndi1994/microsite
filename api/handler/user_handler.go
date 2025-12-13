@@ -75,3 +75,41 @@ func UploadprofileImage(c *gin.Context) {
 	c.JSON(http.StatusAccepted, service.SuccessResponse("Image upload successfully"))
 
 }
+
+func GetUserAnalytics(c *gin.Context) {
+	user := c.MustGet("user").(model.User)
+
+	type UserAnalytics struct {
+		UserId         uint64 `json:"user_id"`
+		UserName       string `json:"user_name"`
+		MicrositeCount int64  `json:"microsite_count"`
+		TotalViews     int64  `json:"total_views"`
+		TotalLeads     int64  `json:"total_leads"`
+	}
+
+	var analytics UserAnalytics
+	// Raw SQL query for efficiency
+	query := `
+		SELECT 
+			u.id as user_id, 
+			u.user_name,
+			COUNT(DISTINCT m.id) as microsite_count,
+			COALESCE(SUM(m.view_count), 0) as total_views,
+			COUNT(DISTINCT l.id) as total_leads,
+			COALESCE(SUM(m.engagement_count), 0) as total_engagement
+		FROM users u
+		LEFT JOIN micro_sites m ON u.id = m.user_id
+		LEFT JOIN leads l ON u.id = l.user_id
+		GROUP BY u.id
+	`
+	if err := database.DB.Raw(query, user.Id).Scan(&analytics).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to fetch analytics"))
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "Analytics fetched successfully",
+		"data":    analytics,
+	})
+}

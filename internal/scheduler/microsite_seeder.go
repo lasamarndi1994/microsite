@@ -7,7 +7,6 @@ import (
 	"micro-site/api/model"
 	"micro-site/database"
 	"strconv"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/gosimple/slug"
@@ -36,7 +35,6 @@ func SeedFakeMicrosites() {
 	}
 
 	var microsites []model.MicroSite
-	rand.Seed(time.Now().UnixNano())
 
 	for i := 0; i < count; i++ {
 		if i%100 == 0 {
