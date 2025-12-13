@@ -100,6 +100,7 @@ func GetUserAnalytics(c *gin.Context) {
 		FROM users u
 		LEFT JOIN micro_sites m ON u.id = m.user_id
 		LEFT JOIN leads l ON u.id = l.user_id
+		WHERE u.id = ?
 		GROUP BY u.id
 	`
 	if err := database.DB.Raw(query, user.Id).Scan(&analytics).Error; err != nil {
