@@ -115,7 +115,7 @@ func UpdatePassword(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, service.SuccessResponse("Password updated successfully"))
+	c.JSON(http.StatusOK, service.SuccessResponse("Your account created successfully.Please relogin process"))
 }
 
 /*
