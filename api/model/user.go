@@ -21,6 +21,7 @@ type User struct {
 	BusinessName     string    `json:"business_name"  gorm:"size:256"`
 	BusinessLocation string    `json:"business_location" gorm:"size:256"`
 	UserAvatar       string    `json:"user_avatar" gorm:"size:256"`
+	MicrositeCount   int64     `json:"microsite_count" gorm:"-"`
 	TimeStamp
 }
 
