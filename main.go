@@ -4,7 +4,6 @@ import (
 	"micro-site/api/routes"
 	"micro-site/config"
 	"micro-site/database"
-	"micro-site/internal/scheduler"
 )
 
 /*
@@ -18,7 +17,7 @@ func main() {
 
 	defer database.CloseDB()
 	// Start Scheduler
-	scheduler.StartCron()
+	// scheduler.StartCron()
 	// Listen and Server in 0.0.0.0:8080
 	router.Run(":8080")
 }
