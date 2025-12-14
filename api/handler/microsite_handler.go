@@ -439,5 +439,5 @@ func UpdateMicrositeEngagementCount(c *gin.Context) {
 		// Update global engagement count
 
 	}()
-	c.JSON(http.StatusOK, service.SuccessResponse("Button click recorded successfully"))
+	c.JSON(http.StatusOK, service.SuccessResponse("Successfully"))
 }
