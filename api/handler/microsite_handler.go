@@ -251,6 +251,9 @@ func UpdateMicrosite(c *gin.Context) {
 
 	randName := fmt.Sprintf("%d", time.Now().UnixNano())
 	if req.AvatarIcon != "" {
+		if existing.AvatarIcon != "" {
+			service.DeleteImage(existing.AvatarIcon, "avatar")
+		}
 		file_name := strconv.FormatUint(uint64(user.Id), 10) + user.Slug + randName + ".png"
 		if service.UploadBase64Image(req.AvatarIcon, file_name, "avatar") {
 			existing.AvatarIcon = file_name
@@ -261,6 +264,9 @@ func UpdateMicrosite(c *gin.Context) {
 		}
 	}
 	if req.BannerImage != "" {
+		if existing.BannerImage != "" {
+			service.DeleteImage(existing.BannerImage, "banner")
+		}
 		file_name := strconv.FormatUint(uint64(user.Id), 10) + user.UserName + randName + ".png"
 		if service.UploadBase64Image(req.BannerImage, file_name, "banner") {
 			existing.BannerImage = file_name
@@ -312,6 +318,19 @@ func UpdateMicrosite(c *gin.Context) {
  */
 func DeleteMicrosite(c *gin.Context) {
 	uuid := c.Param("uuid")
+	var microsite model.MicroSite
+	if err := database.DB.Where("uuid = ?", uuid).First(&microsite).Error; err != nil {
+		c.JSON(http.StatusBadRequest, service.ErrorResponse("Microsite not found"))
+		return
+	}
+
+	if microsite.AvatarIcon != "" {
+		service.DeleteImage(microsite.AvatarIcon, "avatar")
+	}
+	if microsite.BannerImage != "" {
+		service.DeleteImage(microsite.BannerImage, "banner")
+	}
+
 	if err := database.DB.Delete(&model.MicroSite{}, "uuid = ?", uuid).Error; err != nil {
 		c.JSON(http.StatusBadRequest, service.ErrorResponse("Failed to delete microsite"))
 		return

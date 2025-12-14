@@ -35,3 +35,17 @@ func UploadBase64Image(imgData string, fileName string, path string) bool {
 		return true
 	}
 }
+
+/*
+* Delete Image
+* @param fileName string
+* @param path string
+* @return error
+ */
+func DeleteImage(fileName string, path string) error {
+	err := os.Remove("./uploads/" + path + "/" + fileName)
+	if err != nil {
+		return err
+	}
+	return nil
+}
