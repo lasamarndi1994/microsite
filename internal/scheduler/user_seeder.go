@@ -15,7 +15,7 @@ import (
  */
 func SeedFakeUsers() {
 	fmt.Println("Starting user seeding...")
-	count := 40
+	count := 10
 	batchSize := 10
 	var users []model.User
 
