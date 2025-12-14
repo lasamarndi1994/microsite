@@ -80,6 +80,37 @@ func GetAllUsers(c *gin.Context) {
 	// Calculate total pages
 	totalPages := int(math.Ceil(float64(totalRecords) / float64(limit)))
 
+	// Get microsite counts for fetched users
+	if len(users) > 0 {
+		var userIDs []uint64
+		for _, u := range users {
+			userIDs = append(userIDs, u.Id)
+		}
+
+		type UserCount struct {
+			UserId int64
+			Count  int64
+		}
+		var counts []UserCount
+
+		// Aggregate counts
+		database.DB.Model(&model.MicroSite{}).
+			Select("user_id, count(*) as count").
+			Where("user_id IN ?", userIDs).
+			Group("user_id").
+			Scan(&counts)
+
+		// Map counts to users
+		countMap := make(map[uint64]int64)
+		for _, c := range counts {
+			countMap[uint64(c.UserId)] = c.Count
+		}
+
+		for i := range users {
+			users[i].MicrositeCount = countMap[users[i].Id]
+		}
+	}
+
 	// Return success response with pagination
 	c.JSON(http.StatusOK, gin.H{
 		"status":  true,

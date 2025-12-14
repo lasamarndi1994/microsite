@@ -124,6 +124,14 @@ func GetMicrositeDetails(c *gin.Context) {
  */
 func CreateMicrosite(c *gin.Context) {
 	user := c.MustGet("user").(model.User)
+
+	var count int64
+	database.DB.Model(&model.MicroSite{}).Where("user_id = ?", user.Id).Count(&count)
+	if count >= 3 {
+		c.JSON(http.StatusBadRequest, service.ErrorResponse("You can create only 3 microsites."))
+		return
+	}
+
 	var req request.MicrositeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		// Validation errors
@@ -334,6 +342,33 @@ func GetMicrositeSlugDetails(c *gin.Context) {
 		return
 	}
 
+	// Get client IP
+	ip := helper.GetClientIP(c)
+
+	go func() {
+
+		// Check if visitor with this IP already exists for this microsite
+		var visitorCount int64
+		database.DB.Model(&model.MicrositeVisitor{}).
+			Where("micro_site_id = ? AND ip_address = ?", microsite.Id, ip).
+			Count(&visitorCount)
+
+		if visitorCount == 0 {
+			// New visitor, record visit
+			newVisitor := model.MicrositeVisitor{
+				MicroSiteId: microsite.Id,
+				IpAddress:   ip,
+				UserId:      microsite.UserId,
+			}
+			if err := database.DB.Create(&newVisitor).Error; err == nil {
+				// Only increment view count if visitor recording was successful
+				database.DB.Model(&microsite).UpdateColumn("view_count", gorm.Expr("view_count + ?", 1))
+			}
+		} else {
+			fmt.Println("Returning visitor from IP:", ip, "- View count unchanged")
+		}
+	}()
+
 	c.JSON(http.StatusOK, gin.H{
 		"status":  true,
 		"message": "Microsite details fetched successfully",
@@ -367,4 +402,42 @@ func SearchMicrosite(c *gin.Context) {
 		"message": "Microsites fetched successfully",
 		"data":    microsites,
 	})
+}
+
+/*
+* Update microsite engagement count
+* @param c *gin.Context
+* @return gin.JSON
+ */
+func UpdateMicrositeEngagementCount(c *gin.Context) {
+	slug := c.Param("slug")
+	ip := helper.GetClientIP(c)
+	go func() {
+
+		var microsite model.MicroSite
+		if err := database.DB.Where("slug = ?", slug).First(&microsite).Error; err != nil {
+			fmt.Println("Microsite not found:", err)
+			return
+		}
+
+		var visitor model.MicrositeVisitor
+		if err := database.DB.Where("micro_site_id = ? AND ip_address = ?", microsite.Id, ip).First(&visitor).Error; err != nil {
+			// New visitor
+			visitor = model.MicrositeVisitor{
+				MicroSiteId: microsite.Id,
+				UserId:      microsite.UserId,
+				IpAddress:   ip,
+			}
+			if err := database.DB.Create(&visitor).Error; err != nil {
+				fmt.Println("Failed to record click:", err)
+			}
+		} else {
+			// Existing visitor, increment click count
+			database.DB.Model(&microsite).UpdateColumn("engagement_count", gorm.Expr("engagement_count + ?", 1))
+		}
+
+		// Update global engagement count
+
+	}()
+	c.JSON(http.StatusOK, service.SuccessResponse("Button click recorded successfully"))
 }

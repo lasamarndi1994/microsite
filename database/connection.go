@@ -70,13 +70,15 @@ func CloseDB() {
 * @return error
  */
 func migration(db *gorm.DB) error {
-	// db.AutoMigrate(model.User{})
-	// db.AutoMigrate(model.Otp{})
+	db.AutoMigrate(model.User{})
+	db.AutoMigrate(model.Otp{})
 	db.AutoMigrate(model.MicroSite{})
-	// db.AutoMigrate(model.Service{})
-	// db.AutoMigrate(model.SocialLink{})
-	// db.AutoMigrate(model.Lead{})
-	// db.AutoMigrate(model.Admin{})
+	db.AutoMigrate(model.Service{})
+	db.AutoMigrate(model.SocialLink{})
+	db.AutoMigrate(model.Lead{})
+	db.AutoMigrate(model.LeadExternalLog{})
+	db.AutoMigrate(model.MicrositeVisitor{})
+	db.AutoMigrate(model.Admin{})
 
 	return nil
 }

@@ -8,7 +8,7 @@ type Lead struct {
 	Email        string     `json:"email" gorm:"size:256;not null"`
 	MobileNumber string     `json:"mobile_number" gorm:"size:20;not null"`
 	MicrositeId  uint64     `json:"microsite_id" gorm:"not null"`
-	Slug         string     `json:"slug" gorm:"size:256"`
+	UserId       uint64     `json:"user_id" gorm:"not null"`
 	CreatedAt    *time.Time `json:"created_at"`
 	UpdatedAt    *time.Time `json:"updated_at"`
 }

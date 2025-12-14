@@ -29,6 +29,7 @@ func SetupRouter() *gin.Engine {
 	api.POST("/auth/resend-otp", middleware.RateLimitMiddleware(rate.Every(1*time.Minute), 1), handler.ResentOtp)
 	api.GET("/microsite/view/:slug1/:slug2", handler.GetMicrositeSlugDetails)
 	api.POST("/lead/create", handler.CreateLead)
+	api.POST("/microsite/engagement/:slug", handler.UpdateMicrositeEngagementCount)
 
 	api.Use(middleware.AuthMiddleware())
 
@@ -43,6 +44,7 @@ func SetupRouter() *gin.Engine {
 	api.GET("/microsite/search", handler.SearchMicrosite)
 
 	api.GET("/microsite/:id/leads", handler.GetLeads)
+	api.GET("/analytics", handler.GetUserAnalytics)
 
 	admin := router.Group("/api/admin")
 	admin.POST("/login", handler.AdminHandleLogin)
@@ -58,10 +60,6 @@ func SetupRouter() *gin.Engine {
 	admin.PUT("/microsite/reject/:uuid", handler.RejectMicrosite)
 	admin.DELETE("/microsite/delete/:uuid", handler.AdminDeleteMicrosite)
 	admin.GET("/users/:uuid/microsites", handler.GetUserMicrosites)
-
-	// api.POST("/update-profile", func(c *gin.Context) {
-	// 	c.JSON(200, gin.H{"message": "Authorized user!"})
-	// })
 
 	return router
 

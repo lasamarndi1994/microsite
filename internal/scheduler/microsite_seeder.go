@@ -7,7 +7,6 @@ import (
 	"micro-site/api/model"
 	"micro-site/database"
 	"strconv"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/gosimple/slug"
@@ -20,8 +19,8 @@ import (
  */
 func SeedFakeMicrosites() {
 	fmt.Println("Starting microsite seeding...")
-	count := 1000
-	batchSize := 100
+	count := 40
+	batchSize := 10
 
 	// Fetch a list of existing user IDs to assign microsites to
 	var userIDs []uint64
@@ -36,10 +35,9 @@ func SeedFakeMicrosites() {
 	}
 
 	var microsites []model.MicroSite
-	rand.Seed(time.Now().UnixNano())
 
 	for i := 0; i < count; i++ {
-		if i%100 == 0 {
+		if i%10 == 0 {
 			fmt.Println("Preparing microsite", i)
 		}
 		userID := userIDs[rand.Intn(len(userIDs))]
@@ -58,8 +56,6 @@ func SeedFakeMicrosites() {
 			Slug:        slug,
 			Description: "This is a fake microsite.",
 			Status:      "Pending",
-			AvatarIcon:  "default_avatar.png",
-			BannerImage: "default_banner.png",
 		}
 
 		// Add Services

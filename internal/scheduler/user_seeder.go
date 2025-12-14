@@ -7,7 +7,6 @@ import (
 	"micro-site/api/model"
 	"micro-site/database"
 	"strconv"
-	"time"
 )
 
 /*
@@ -16,12 +15,9 @@ import (
  */
 func SeedFakeUsers() {
 	fmt.Println("Starting user seeding...")
-	count := 10000
-	batchSize := 1000
+	count := 40
+	batchSize := 10
 	var users []model.User
-
-	// Seed random generator
-	rand.Seed(time.Now().UnixNano())
 
 	for i := 0; i < count; i++ {
 		user := model.User{

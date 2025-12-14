@@ -13,7 +13,7 @@ type User struct {
 	UserName         string    `json:"user_name" gorm:"size:256;not null"`
 	Email            string    `json:"email" gorm:"unique;unique_email"`
 	MobileNumber     int       `json:"mobile_number" gorm:"unique;default null"`
-	PartnerCode      string    `json:"partner_code" gorm:"size:256;not null"`
+	UserCode         string    `json:"user_code" gorm:"size:256;not null"`
 	Password         string    `json:"-" gorm:"size:256"`
 	Slug             string    `json:"slug" gorm:"unique;default null"`
 	Status           string    `json:"status" gorm:"type:enum('Active','Pending','Approved','Deactive');default:'Active';not null"`
@@ -21,6 +21,7 @@ type User struct {
 	BusinessName     string    `json:"business_name"  gorm:"size:256"`
 	BusinessLocation string    `json:"business_location" gorm:"size:256"`
 	UserAvatar       string    `json:"user_avatar" gorm:"size:256"`
+	MicrositeCount   int64     `json:"microsite_count" gorm:"-"`
 	TimeStamp
 }
 

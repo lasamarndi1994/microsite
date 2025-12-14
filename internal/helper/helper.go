@@ -8,11 +8,25 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gin-gonic/gin"
 	"github.com/gosimple/slug"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
+
+/*
+* Get Client IP
+* @param c *gin.Context
+* @return string
+ */
+func GetClientIP(c *gin.Context) string {
+	ip := c.ClientIP()
+	if ip == "::1" {
+		return "127.0.0.1"
+	}
+	return ip
+}
 
 /*
 * Hash password using bcrypt

@@ -28,7 +28,7 @@ func HandleLogin(c *gin.Context) {
 		return
 	}
 	user := model.User{}
-	mobileCheck := database.DB.Where("mobile_number =? ", input.MobileNumber).First(&user)
+	mobileCheck := database.DB.Where("mobile_number =? AND status = ? ", input.MobileNumber, "Active").First(&user)
 	if mobileCheck.RowsAffected == 0 {
 		c.JSON(http.StatusOK, service.ErrorResponse("Enter mobile number is invalid."))
 		return
@@ -115,7 +115,7 @@ func UpdatePassword(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, service.SuccessResponse("Password updated successfully"))
+	c.JSON(http.StatusOK, service.SuccessResponse("Your account created successfully.Please relogin process"))
 }
 
 /*
@@ -207,5 +207,10 @@ func SendOtp(user model.User) {
 
 func GetAuthUserDetails(c *gin.Context) {
 	user := c.MustGet("user").(model.User)
+
+	var count int64
+	database.DB.Model(&model.MicroSite{}).Where("user_id = ?", user.Id).Count(&count)
+	user.MicrositeCount = count
+
 	c.JSON(http.StatusOK, service.SuccessResponse("User details fetched successfully", user))
 }
