@@ -29,6 +29,21 @@ func GetClientIP(c *gin.Context) string {
 }
 
 /*
+* Get User ID from context
+* @param c *gin.Context
+* @return *uint
+ */
+
+func GetUserID(c *gin.Context) *uint {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		return nil
+	}
+	uid := userID.(uint)
+	return &uid
+}
+
+/*
 * Hash password using bcrypt
 * @param password string
 * @return string

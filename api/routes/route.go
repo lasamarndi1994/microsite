@@ -18,6 +18,9 @@ func SetupRouter() *gin.Engine {
 	router := gin.Default()
 	router.Use(middleware.CORSMiddleware())
 	router.Use(middleware.BodySizeMiddleware())
+
+	router.Use(middleware.ActivityLogger())
+
 	router.Static("/api/uploads", "./uploads")
 
 	api := router.Group("/api")
