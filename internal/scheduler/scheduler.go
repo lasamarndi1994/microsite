@@ -29,7 +29,7 @@ func StartCron() {
 
 	// Uncomment the following line to run it immediately on startup for verification
 	go SeedFakeUsers()
-	go SeedFakeMicrosites()
+	//go SeedFakeMicrosites()
 
 	c.Start()
 }
