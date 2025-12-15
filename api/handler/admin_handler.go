@@ -59,11 +59,11 @@ func GetAllUsers(c *gin.Context) {
 	toDate := c.Query("to_date")
 
 	if fromDate != "" && toDate != "" {
-		query = query.Where("created_at BETWEEN ? AND ?", fromDate, toDate)
+		query = query.Where("updated_at BETWEEN ? AND ?", fromDate, toDate)
 	} else if fromDate != "" {
-		query = query.Where("created_at >= ?", fromDate)
+		query = query.Where("updated_at >= ?", fromDate)
 	} else if toDate != "" {
-		query = query.Where("created_at <= ?", toDate)
+		query = query.Where("updated_at <= ?", toDate)
 	}
 
 	// Count total records
@@ -189,6 +189,13 @@ func GetUserMicrosites(c *gin.Context) {
 		return
 	}
 
+	// Count approved microsites
+	var approvedCount int64
+	if err := database.DB.Model(&model.MicroSite{}).Where("user_id = ? AND status = ?", user.Id, "Approved").Count(&approvedCount).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to count approved microsites"))
+		return
+	}
+
 	// Return success response
 	c.JSON(http.StatusOK, gin.H{
 		"status":  true,
@@ -202,8 +209,9 @@ func GetUserMicrosites(c *gin.Context) {
 			"status":        user.Status,
 			"user_avatar":   user.UserAvatar,
 		},
-		"data":  microsites,
-		"count": len(microsites),
+		"data":           microsites,
+		"count":          len(microsites),
+		"approved_count": approvedCount,
 	})
 }
 
