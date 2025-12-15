@@ -31,5 +31,9 @@ func StartCron() {
 	go SeedFakeUsers()
 	//go SeedFakeMicrosites()
 
+	// c.AddFunc("*/5 * * * *", func() {
+	// 	RetryFailedLeads()
+	// })
+
 	c.Start()
 }
