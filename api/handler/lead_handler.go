@@ -11,8 +11,31 @@ import (
 	"micro-site/internal/service"
 	"net/http"
 
+	"strings"
+
 	"github.com/gin-gonic/gin"
 )
+
+/*
+* Get leads for a specific microsite
+* @param c *gin.Context
+* @return gin.JSON
+ */
+func GetLeads(c *gin.Context) {
+	micrositeId := c.Param("id")
+	if micrositeId == "" {
+		c.JSON(http.StatusBadRequest, service.ErrorResponse("Microsite ID is required"))
+		return
+	}
+
+	var leads []model.Lead
+	if err := database.DB.Where("microsite_id = ?", micrositeId).Find(&leads).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to fetch leads"))
+		return
+	}
+
+	c.JSON(http.StatusOK, service.SuccessResponse("Thanks for join with me", leads))
+}
 
 /*
 * Create a new lead
@@ -52,7 +75,7 @@ func CreateLead(c *gin.Context) {
 	// Send data to DigiWeb
 	partnerCode := user.UserCode
 	if partnerCode == "" {
-		partnerCode = "ANTIQ"
+		partnerCode = "DEKYC"
 	}
 
 	go func(l model.Lead, partnerCode string) {
@@ -80,7 +103,8 @@ func CreateLead(c *gin.Context) {
 		} else {
 			defer resp.Body.Close()
 			bodyBytes, _ := io.ReadAll(resp.Body)
-			logEntry.ResponsePayload = string(bodyBytes)
+			responseBody := string(bodyBytes)
+			logEntry.ResponsePayload = responseBody
 			logEntry.HttpStatusCode = resp.StatusCode
 
 			if resp.StatusCode >= 200 && resp.StatusCode < 300 {
@@ -88,34 +112,18 @@ func CreateLead(c *gin.Context) {
 			} else {
 				logEntry.Status = "Failed"
 			}
+
+			if strings.Contains(responseBody, "Leadstatus = Inserted") {
+				l.LeadStatus = true
+				l.LeadMessage = "New Lead"
+			} else {
+				l.LeadStatus = false
+				l.LeadMessage = "Lead is already exist in our system"
+			}
+			database.DB.Save(&l)
 		}
-
 		database.DB.Create(&logEntry)
-
 		// Update lead count in microsite visitor
-
 	}(lead, partnerCode)
-
 	c.JSON(http.StatusCreated, service.SuccessResponse("Thanks for join with me."))
-}
-
-/*
-* Get leads for a specific microsite
-* @param c *gin.Context
-* @return gin.JSON
- */
-func GetLeads(c *gin.Context) {
-	micrositeId := c.Param("id")
-	if micrositeId == "" {
-		c.JSON(http.StatusBadRequest, service.ErrorResponse("Microsite ID is required"))
-		return
-	}
-
-	var leads []model.Lead
-	if err := database.DB.Where("microsite_id = ?", micrositeId).Find(&leads).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to fetch leads"))
-		return
-	}
-
-	c.JSON(http.StatusOK, service.SuccessResponse("Thanks for join with me", leads))
 }

@@ -46,6 +46,7 @@ func SetupRouter() *gin.Engine {
 	api.GET("/microsite/details/:uuid", handler.GetMicrositeDetails)
 	api.POST("/microsite/create", handler.CreateMicrosite)
 	api.PUT("/microsite/update/:uuid", handler.UpdateMicrosite)
+	api.GET("/microsite/approved", handler.GetUserApprovedMicrosites)
 	api.DELETE("/microsite/delete/:uuid", handler.DeleteMicrosite)
 	api.GET("/microsite/search", handler.SearchMicrosite)
 

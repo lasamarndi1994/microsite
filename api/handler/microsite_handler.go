@@ -372,7 +372,7 @@ func GetMicrositeSlugDetails(c *gin.Context) {
 			Where("micro_site_id = ? AND ip_address = ?", microsite.Id, ip).
 			Count(&visitorCount)
 
-		if visitorCount == 0 {
+		if visitorCount == 0 || microsite.Status == "Approved" {
 			// New visitor, record visit
 			newVisitor := model.MicrositeVisitor{
 				MicroSiteId: microsite.Id,
@@ -459,4 +459,57 @@ func UpdateMicrositeEngagementCount(c *gin.Context) {
 
 	}()
 	c.JSON(http.StatusOK, service.SuccessResponse("Successfully"))
+}
+
+/*
+* Get all approved microsites for the authenticated user with stats
+* @param c *gin.Context
+* @return gin.JSON
+ */
+func GetUserApprovedMicrosites(c *gin.Context) {
+	// Get the authenticated user
+	user := c.MustGet("user").(model.User)
+
+	// Fetch approved microsites
+	var microsites []model.MicroSite
+	if err := database.DB.Where("user_id = ? AND status = ?", user.Id, "Approved").
+		Preload("User", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, user_name, email, slug, mobile_number")
+		}).
+		Preload("SocialLinks").
+		Order("updated_at desc").
+		Find(&microsites).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to fetch microsites"))
+		return
+	}
+
+	// Prepare response data with stats
+	var responseData []gin.H
+	for _, site := range microsites {
+		var leadCount int64
+		database.DB.Model(&model.Lead{}).Where("microsite_id = ?", site.Id).Count(&leadCount)
+
+		responseData = append(responseData, gin.H{
+			"id":               site.Id,
+			"uuid":             site.Uuid,
+			"title":            site.Title,
+			"full_name":        site.FullName,
+			"subtitle":         site.SubTitle,
+			"user_slug":        site.User.Slug,
+			"slug":             site.Slug,
+			"status":           site.Status,
+			"view_count":       site.ViewCount,
+			"engagement_count": site.EngagementCount,
+			"lead_count":       leadCount,
+			"banner_image":     site.BannerImage,
+			"avatar_icon":      site.AvatarIcon,
+			"updated_at":       site.UpdatedAt,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "Approved microsites fetched successfully",
+		"data":    responseData,
+	})
 }
