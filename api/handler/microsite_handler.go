@@ -347,6 +347,7 @@ func DeleteMicrosite(c *gin.Context) {
 func GetMicrositeSlugDetails(c *gin.Context) {
 	slug1 := c.Param("slug1") // User slug
 	slug2 := c.Param("slug2") // Microsite slug
+	authHeader := c.GetHeader("Authorization")
 
 	var microsite model.MicroSite
 
@@ -362,30 +363,34 @@ func GetMicrositeSlugDetails(c *gin.Context) {
 	}
 
 	// Get client IP
-	ip := helper.GetClientIP(c)
+	//ip := helper.GetClientIP(c)
 
 	go func() {
 
-		// Check if visitor with this IP already exists for this microsite
-		var visitorCount int64
-		database.DB.Model(&model.MicrositeVisitor{}).
-			Where("micro_site_id = ? AND ip_address = ?", microsite.Id, ip).
-			Count(&visitorCount)
+		if microsite.Status == "Approved" && authHeader == "" {
+			database.DB.Model(&microsite).UpdateColumn("view_count", gorm.Expr("view_count + ?", 1))
 
-		if visitorCount == 0 || microsite.Status == "Approved" {
-			// New visitor, record visit
-			newVisitor := model.MicrositeVisitor{
-				MicroSiteId: microsite.Id,
-				IpAddress:   ip,
-				UserId:      microsite.UserId,
-			}
-			if err := database.DB.Create(&newVisitor).Error; err == nil {
-				// Only increment view count if visitor recording was successful
-				database.DB.Model(&microsite).UpdateColumn("view_count", gorm.Expr("view_count + ?", 1))
-			}
-		} else {
-			fmt.Println("Returning visitor from IP:", ip, "- View count unchanged")
 		}
+		// Check if visitor with this IP already exists for this microsite
+		// var visitorCount int64
+		// database.DB.Model(&model.MicrositeVisitor{}).
+		// 	Where("micro_site_id = ? AND ip_address = ?", microsite.Id, ip).
+		// 	Count(&visitorCount)
+
+		// if visitorCount == 0 || (microsite.Status == "Approved" && authHeader == "") {
+		// 	// New visitor, record visit
+		// 	newVisitor := model.MicrositeVisitor{
+		// 		MicroSiteId: microsite.Id,
+		// 		IpAddress:   ip,
+		// 		UserId:      microsite.UserId,
+		// 	}
+		// 	if err := database.DB.Create(&newVisitor).Error; err == nil {
+		// 		// Only increment view count if visitor recording was successful
+		// 		database.DB.Model(&microsite).UpdateColumn("view_count", gorm.Expr("view_count + ?", 1))
+		// 	}
+		// } else {
+		// 	fmt.Println("Returning visitor from IP:", ip, "- View count unchanged")
+		// }
 	}()
 
 	c.JSON(http.StatusOK, gin.H{
@@ -430,7 +435,7 @@ func SearchMicrosite(c *gin.Context) {
  */
 func UpdateMicrositeEngagementCount(c *gin.Context) {
 	slug := c.Param("slug")
-	ip := helper.GetClientIP(c)
+	//ip := helper.GetClientIP(c)
 	go func() {
 
 		var microsite model.MicroSite
@@ -438,22 +443,23 @@ func UpdateMicrositeEngagementCount(c *gin.Context) {
 			fmt.Println("Microsite not found:", err)
 			return
 		}
+		database.DB.Model(&microsite).UpdateColumn("engagement_count", gorm.Expr("engagement_count + ?", 1))
 
-		var visitor model.MicrositeVisitor
-		if err := database.DB.Where("micro_site_id = ? AND ip_address = ?", microsite.Id, ip).First(&visitor).Error; err != nil {
-			// New visitor
-			visitor = model.MicrositeVisitor{
-				MicroSiteId: microsite.Id,
-				UserId:      microsite.UserId,
-				IpAddress:   ip,
-			}
-			if err := database.DB.Create(&visitor).Error; err != nil {
-				fmt.Println("Failed to record click:", err)
-			}
-		} else {
-			// Existing visitor, increment click count
-			database.DB.Model(&microsite).UpdateColumn("engagement_count", gorm.Expr("engagement_count + ?", 1))
-		}
+		// var visitor model.MicrositeVisitor
+		// if err := database.DB.Where("micro_site_id = ? AND ip_address = ?", microsite.Id, ip).First(&visitor).Error; err != nil {
+		// 	// New visitor
+		// 	visitor = model.MicrositeVisitor{
+		// 		MicroSiteId: microsite.Id,
+		// 		UserId:      microsite.UserId,
+		// 		IpAddress:   ip,
+		// 	}
+		// 	if err := database.DB.Create(&visitor).Error; err != nil {
+		// 		fmt.Println("Failed to record click:", err)
+		// 	}
+		// } else {
+		// 	// Existing visitor, increment click count
+		// 	database.DB.Model(&microsite).UpdateColumn("engagement_count", gorm.Expr("engagement_count + ?", 1))
+		// }
 
 		// Update global engagement count
 
