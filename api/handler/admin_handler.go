@@ -77,7 +77,7 @@ func GetAllUsers(c *gin.Context) {
 	// Execute query with pagination
 	var users []model.User
 	// Sort by latest microsite creation time, then by user updated_at
-	if err := query.Order("(SELECT id FROM micro_sites WHERE micro_sites.user_id = users.id) DESC").Order("updated_at desc").Limit(limit).Offset(offset).Find(&users).Error; err != nil {
+	if err := query.Order("(SELECT MAX(id) FROM micro_sites WHERE micro_sites.user_id = users.id) DESC").Order("updated_at desc").Limit(limit).Offset(offset).Find(&users).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to fetch users"))
 		return
 	}
