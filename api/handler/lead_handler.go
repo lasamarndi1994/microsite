@@ -113,7 +113,7 @@ func CreateLead(c *gin.Context) {
 				logEntry.Status = "Failed"
 			}
 
-			if strings.Contains(responseBody, "Leadstatus = Inserted") {
+			if strings.Contains(responseBody, "Inserted") {
 				l.LeadStatus = true
 				l.LeadMessage = "New Lead"
 			} else {
