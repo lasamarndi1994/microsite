@@ -53,7 +53,7 @@ func GetAllUsers(c *gin.Context) {
 	search := c.Query("search")
 	if search != "" {
 		searchLike := "%" + search + "%"
-		query = query.Where("user_name LIKE ? OR email LIKE ? OR mobile_number LIKE ?", searchLike, searchLike, searchLike)
+		query = query.Where("mobile_number LIKE ? OR email LIKE ? OR CAST(mobile_number AS CHAR) LIKE ?", searchLike, searchLike, searchLike)
 	}
 
 	// Apply status filter if provided
@@ -63,11 +63,11 @@ func GetAllUsers(c *gin.Context) {
 	toDate := c.Query("to_date")
 
 	if fromDate != "" && toDate != "" {
-		query = query.Where("updated_at BETWEEN ? AND ?", fromDate, toDate)
+		query = query.Where("DATE(updated_at) BETWEEN ? AND ?", fromDate, toDate)
 	} else if fromDate != "" {
-		query = query.Where("updated_at >= ?", fromDate)
+		query = query.Where("DATE(updated_at) >= ?", fromDate)
 	} else if toDate != "" {
-		query = query.Where("updated_at <= ?", toDate)
+		query = query.Where("DATE(updated_at) <= ?", toDate)
 	}
 
 	// Count total records
@@ -76,7 +76,8 @@ func GetAllUsers(c *gin.Context) {
 
 	// Execute query with pagination
 	var users []model.User
-	if err := query.Order("updated_at desc").Limit(limit).Offset(offset).Find(&users).Error; err != nil {
+	// Sort by latest microsite creation time, then by user updated_at
+	if err := query.Order("(SELECT id FROM micro_sites WHERE micro_sites.user_id = users.id) DESC").Order("updated_at desc").Limit(limit).Offset(offset).Find(&users).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to fetch users"))
 		return
 	}
