@@ -331,6 +331,9 @@ func DeleteMicrosite(c *gin.Context) {
 		service.DeleteImage(microsite.BannerImage, "banner")
 	}
 
+	// Delete associated leads
+	database.DB.Where("microsite_id = ?", microsite.Id).Delete(&model.Lead{})
+
 	if err := database.DB.Delete(&model.MicroSite{}, "uuid = ?", uuid).Error; err != nil {
 		c.JSON(http.StatusBadRequest, service.ErrorResponse("Failed to delete microsite"))
 		return
