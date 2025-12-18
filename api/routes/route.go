@@ -33,6 +33,7 @@ func SetupRouter() *gin.Engine {
 	api.POST("/auth/resend-otp", middleware.RateLimitMiddleware(rate.Every(1*time.Minute), 1), handler.ResentOtp)
 	api.POST("/auth/forgot-password", handler.ForgotPassword)
 	api.POST("/auth/reset-password", handler.ResetPassword)
+	api.POST("/auth/register", handler.Register)
 	api.GET("/microsite/view/:slug1/:slug2", handler.GetMicrositeSlugDetails)
 	api.POST("/lead/create", handler.CreateLead)
 	api.POST("/microsite/engagement/:slug", handler.UpdateMicrositeEngagementCount)
@@ -67,6 +68,7 @@ func SetupRouter() *gin.Engine {
 	admin.PUT("/microsite/approve/:uuid", handler.ApproveMicrosite)
 	admin.PUT("/microsite/reject/:uuid", handler.RejectMicrosite)
 	admin.DELETE("/microsite/delete/:uuid", handler.AdminDeleteMicrosite)
+	admin.POST("/upload-users", handler.UploadUserCSV)
 
 	return router
 

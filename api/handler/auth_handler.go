@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"micro-site/api/model"
 	"micro-site/api/request"
 	"micro-site/database"
@@ -298,4 +299,57 @@ func GetAuthUserDetails(c *gin.Context) {
 	user.MicrositeCount = count
 
 	c.JSON(http.StatusOK, service.SuccessResponse("User details fetched successfully", user))
+}
+
+/*
+* Register user
+* @param c *gin.Context
+* @return gin.JSON
+ */
+func Register(c *gin.Context) {
+	var req request.RegisterRequest
+	fmt.Println(req)
+	if err := c.ShouldBindJSON(&req); err != nil {
+		errs := helper.FormatValidationError(err)
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"status": false,
+			"errors": errs,
+		})
+		return
+	}
+
+	// Check if email already exists
+	var existingUser model.User
+	if database.DB.Where("email = ?", req.Email).First(&existingUser).RowsAffected > 0 {
+		c.JSON(http.StatusBadRequest, service.ErrorResponse("Email already exists"))
+		return
+	}
+
+	// Check if mobile number already exists
+	if database.DB.Where("mobile_number = ?", req.MobileNumber).First(&existingUser).RowsAffected > 0 {
+		c.JSON(http.StatusBadRequest, service.ErrorResponse("Mobile number already exists"))
+		return
+	}
+
+	newUser := model.User{
+		UserName:     req.UserName,
+		Email:        req.Email,
+		MobileNumber: req.MobileNumber,
+		Status:       "Active", // Default status
+		UserCode:     req.UserCode,
+	}
+
+	if err := database.DB.Create(&newUser).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to create user"))
+		return
+	}
+
+	// Generate JWT token for auto-login
+	token, err := service.GenerateJWT(newUser)
+	if err != nil {
+		c.JSON(http.StatusOK, service.SuccessResponse("User registered successfully, but failed to generate token", nil))
+		return
+	}
+
+	c.JSON(http.StatusOK, service.SuccessResponse("User registered successfully", token))
 }

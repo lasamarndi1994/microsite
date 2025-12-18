@@ -472,11 +472,17 @@ func GetUserApprovedMicrosites(c *gin.Context) {
 
 	// Fetch approved microsites
 	var microsites []model.MicroSite
-	if err := database.DB.Where("user_id = ? AND status = ?", user.Id, "Approved").
+	query := database.DB.Where("user_id = ? AND status = ?", user.Id, "Approved")
+
+	search := c.Query("search")
+	if search != "" {
+		query = query.Where("title LIKE ? OR sub_title LIKE ?", "%"+search+"%", "%"+search+"%")
+	}
+
+	if err := query.
 		Preload("User", func(db *gorm.DB) *gorm.DB {
 			return db.Select("id, user_name, email, slug, mobile_number")
 		}).
-		Preload("SocialLinks").
 		Order("updated_at desc").
 		Find(&microsites).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to fetch microsites"))

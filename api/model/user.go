@@ -35,7 +35,9 @@ type User struct {
  */
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	u.Uuid = uuid.New() // NOT uuid.UUID{}
-	u.Slug = helper.GenerateUniqueSlug(tx, u.UserName, &User{}, "slug")
+	if u.Slug == "" {
+		u.Slug = helper.GenerateUniqueSlug(tx, u.UserName, &User{}, "slug")
+	}
 	return
 }
 

@@ -1,14 +1,18 @@
 package handler
 
 import (
+	"encoding/csv"
+	"fmt"
 	"math"
 	"micro-site/api/model"
 	"micro-site/database"
 	"micro-site/internal/service"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gosimple/slug"
 )
 
 /*
@@ -471,4 +475,196 @@ func AdminGetMicrositeDetails(c *gin.Context) {
 
 	// Return success response
 	c.JSON(http.StatusOK, service.SuccessResponse("Microsite details fetched successfully", microsite))
+}
+
+/*
+* Upload user CSV
+* @param c *gin.Context
+* @return gin.JSON
+ */
+func UploadUserCSV(c *gin.Context) {
+	fmt.Println("UploadUserCSV")
+	// Get admin from context
+	_, exists := c.Get("admin")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, service.ErrorResponse("Admin authentication required"))
+		return
+	}
+
+	// Get file from request
+	file, err := c.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, service.ErrorResponse("File is required"))
+		return
+	}
+
+	// Open file
+	src, err := file.Open()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to open file"))
+		return
+	}
+	defer src.Close()
+
+	// Parse CSV
+	reader := csv.NewReader(src)
+	records, err := reader.ReadAll()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, service.ErrorResponse("Failed to parse CSV file"))
+		return
+	}
+
+	if len(records) < 2 {
+		c.JSON(http.StatusBadRequest, service.ErrorResponse("CSV file is empty or missing header"))
+		return
+	}
+
+	// Map headers
+	header := records[0]
+	headerMap := make(map[string]int)
+	for i, h := range header {
+		headerMap[strings.TrimSpace(h)] = i
+	}
+
+	// Validate required columns
+	requiredColumns := []string{"RemeshireCode", "RemeshireName", "EmailId", "MobileNo"}
+	for _, col := range requiredColumns {
+		if _, ok := headerMap[col]; !ok {
+			c.JSON(http.StatusBadRequest, service.ErrorResponse("Missing required column: "+col))
+			return
+		}
+	}
+	fmt.Println("UploadUserCSV1")
+
+	// Fetch existing mobile numbers
+	var existingMobileNumbers []int
+	if err := database.DB.Model(&model.User{}).Pluck("mobile_number", &existingMobileNumbers).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to fetch existing mobile numbers"))
+		return
+	}
+
+	// Create a map for faster lookup
+	existingMobileMap := make(map[int]bool)
+	for _, num := range existingMobileNumbers {
+		existingMobileMap[num] = true
+	}
+
+	// Fetch existing emails
+	var existingEmails []string
+	if err := database.DB.Model(&model.User{}).Pluck("email", &existingEmails).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to fetch existing emails"))
+		return
+	}
+
+	// Create a map for faster lookup
+	existingEmailMap := make(map[string]bool)
+	for _, email := range existingEmails {
+		existingEmailMap[email] = true
+	}
+
+	// Fetch existing slugs
+	var existingSlugs []string
+	if err := database.DB.Model(&model.User{}).Pluck("slug", &existingSlugs).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to fetch existing slugs"))
+		return
+	}
+
+	// Create a map for faster lookup
+	existingSlugMap := make(map[string]bool)
+	for _, s := range existingSlugs {
+		existingSlugMap[s] = true
+	}
+
+	var users []model.User
+	var errors []string
+	var skippedCount int
+
+	// Process records
+	for i, record := range records[1:] {
+		rowNum := i + 2 // 1-based index, +1 for header
+
+		remeshireCode := record[headerMap["RemeshireCode"]]
+		remeshireName := record[headerMap["RemeshireName"]]
+		emailId := strings.ToLower(strings.TrimSpace(record[headerMap["EmailId"]]))
+		mobileNoStr := record[headerMap["MobileNo"]]
+
+		if remeshireCode == "" || remeshireName == "" || emailId == "" || mobileNoStr == "" {
+			errors = append(errors, "Row "+strconv.Itoa(rowNum)+": Missing required fields")
+			continue
+		}
+
+		mobileNo, err := strconv.Atoi(mobileNoStr)
+		if err != nil {
+			errors = append(errors, "Row "+strconv.Itoa(rowNum)+": Invalid MobileNo")
+			continue
+		}
+
+		// Check if mobile number already exists
+		if existingMobileMap[mobileNo] {
+			skippedCount++
+			continue
+		}
+
+		// Check if email already exists
+		if existingEmailMap[emailId] {
+			skippedCount++
+			continue
+		}
+
+		// Check if slug already exists
+		userSlug := slug.Make(remeshireName)
+		if existingSlugMap[userSlug] {
+			skippedCount++
+			continue
+		}
+
+		fmt.Println("UploadUserCSV3")
+		user := model.User{
+			UserCode:     remeshireCode,
+			UserName:     remeshireName,
+			Email:        emailId,
+			MobileNumber: mobileNo,
+			Slug:         userSlug,
+			Status:       "Active", // Default status
+		}
+		users = append(users, user)
+
+		// Add to map to handle duplicates within the CSV itself
+		existingMobileMap[mobileNo] = true
+		existingEmailMap[emailId] = true
+		existingSlugMap[userSlug] = true
+	}
+
+	if len(users) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":  false,
+			"message": "No valid records found to insert",
+			"errors":  errors,
+			"skipped": skippedCount,
+		})
+		return
+	}
+
+	fmt.Println("UploadUserCSV4")
+	// Batch insert
+	batchSize := 100
+	if err := database.DB.CreateInBatches(users, batchSize).Error; err != nil {
+		// If batch insert fails, we might want to return more specific errors, but for now generic
+		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to insert users: "+err.Error()))
+		return
+	}
+
+	response := gin.H{
+		"status":        true,
+		"message":       "Users uploaded successfully",
+		"total_records": len(records) - 1,
+		"inserted":      len(users),
+		"skipped":       skippedCount,
+	}
+
+	if len(errors) > 0 {
+		response["errors"] = errors
+	}
+
+	c.JSON(http.StatusOK, response)
 }
