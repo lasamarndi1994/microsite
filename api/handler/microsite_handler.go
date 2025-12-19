@@ -43,7 +43,6 @@ func GetMicroSite(c *gin.Context) {
 			"Approved": true,
 			"Rejected": true,
 			"Active":   true,
-			"Draft":    true,
 		}
 		if !validStatuses[status] {
 			c.JSON(http.StatusBadRequest, service.ErrorResponse("Invalid status. Valid values are: Pending, Approved, Rejected, Active"))
@@ -66,6 +65,7 @@ func GetMicroSite(c *gin.Context) {
 		Order("created_at desc").
 		Limit(limit).
 		Offset(offset).
+		Where("status != 'Draft'").
 		Find(&microsites).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to fetch microsites"))
 		return
@@ -525,6 +525,51 @@ func GetUserApprovedMicrosites(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"status":  true,
 		"message": "Approved microsites fetched successfully",
+		"data":    responseData,
+	})
+}
+
+func GetUserDraftMicrosites(c *gin.Context) {
+	// Get the authenticated user
+	user := c.MustGet("user").(model.User)
+
+	// Fetch draft microsites
+	var microsites []model.MicroSite
+	query := database.DB.Where("user_id = ? AND status = ?", user.Id, "Draft")
+
+	if err := query.
+		Preload("User", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, user_name, email, slug, mobile_number")
+		}).
+		Order("updated_at desc").
+		Find(&microsites).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to fetch microsites"))
+		return
+	}
+
+	// Prepare response data with stats
+	var responseData []gin.H
+	for _, site := range microsites {
+		responseData = append(responseData, gin.H{
+			"id":               site.Id,
+			"uuid":             site.Uuid,
+			"title":            site.Title,
+			"full_name":        site.FullName,
+			"subtitle":         site.SubTitle,
+			"user_slug":        site.User.Slug,
+			"slug":             site.Slug,
+			"status":           site.Status,
+			"view_count":       site.ViewCount,
+			"engagement_count": site.EngagementCount,
+			"banner_image":     site.BannerImage,
+			"avatar_icon":      site.AvatarIcon,
+			"updated_at":       site.UpdatedAt,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  true,
+		"message": "Draft microsites fetched successfully",
 		"data":    responseData,
 	})
 }
