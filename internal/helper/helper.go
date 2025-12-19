@@ -34,12 +34,12 @@ func GetClientIP(c *gin.Context) string {
 * @return *uint
  */
 
-func GetUserID(c *gin.Context) *uint {
+func GetUserID(c *gin.Context) *uint64 {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		return nil
 	}
-	uid := userID.(uint)
+	uid := userID.(uint64)
 	return &uid
 }
 
