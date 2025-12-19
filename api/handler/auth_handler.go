@@ -152,7 +152,7 @@ func ValidateMobileNumber(c *gin.Context) {
 		// c.JSON(http.StatusOK, service.SuccessResponse("OTP is send your email address.", user))
 		return
 	} else {
-		c.JSON(http.StatusBadRequest, service.ErrorResponse("Enter mobile number doesn't exist."))
+		c.JSON(http.StatusBadRequest, service.ErrorResponse("Entered mobile number doesn't exist."))
 		return
 	}
 }
