@@ -208,8 +208,8 @@ func GetUserMicrosites(c *gin.Context) {
 	}
 
 	// Count approved microsites
-	var approvedCount int64
-	if err := database.DB.Model(&model.MicroSite{}).Where("user_id = ? AND status = ?", user.Id, "Approved").Count(&approvedCount).Error; err != nil {
+	var pendingCount int64
+	if err := database.DB.Model(&model.MicroSite{}).Where("user_id = ? AND status = ?", user.Id, "Pending").Count(&pendingCount).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to count approved microsites"))
 		return
 	}
@@ -228,9 +228,9 @@ func GetUserMicrosites(c *gin.Context) {
 			"user_avatar":   user.UserAvatar,
 			"user_slug":     user.Slug,
 		},
-		"data":           microsites,
-		"count":          len(microsites),
-		"approved_count": approvedCount,
+		"data":          microsites,
+		"count":         len(microsites),
+		"pending_count": pendingCount,
 	})
 }
 
