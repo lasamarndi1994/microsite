@@ -34,7 +34,7 @@ func GetLeads(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, service.SuccessResponse("Thanks for join with me", leads))
+	c.JSON(http.StatusOK, service.SuccessResponse("Thank you for joining me.", leads))
 }
 
 /*
@@ -125,5 +125,5 @@ func CreateLead(c *gin.Context) {
 		database.DB.Create(&logEntry)
 		// Update lead count in microsite visitor
 	}(lead, partnerCode)
-	c.JSON(http.StatusCreated, service.SuccessResponse("Thanks for join with me."))
+	c.JSON(http.StatusCreated, service.SuccessResponse("Thank you for joining me."))
 }
