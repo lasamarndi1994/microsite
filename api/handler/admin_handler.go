@@ -49,8 +49,8 @@ func GetAllUsers(c *gin.Context) {
 	// Build query
 	query := database.DB.Model(&model.User{})
 
-	// Filter: Only users with at least one microsite
-	query = query.Where("EXISTS (SELECT 1 FROM micro_sites WHERE micro_sites.user_id = users.id)")
+	// Filter: Only users with at least one microsite (excluding Draft)
+	query = query.Where("EXISTS (SELECT 1 FROM micro_sites WHERE micro_sites.user_id = users.id AND micro_sites.status != 'Draft')")
 
 	// Search filter
 	search := c.Query("search")
@@ -79,8 +79,8 @@ func GetAllUsers(c *gin.Context) {
 
 	// Execute query with pagination
 	var users []model.User
-	// Sort by latest microsite creation time, then by user updated_at
-	if err := query.Order("(SELECT MAX(id) FROM micro_sites WHERE micro_sites.user_id = users.id) DESC").Order("updated_at desc").Limit(limit).Offset(offset).Find(&users).Error; err != nil {
+	// Sort by latest microsite creation time (excluding Draft), then by user updated_at
+	if err := query.Order("(SELECT MAX(id) FROM micro_sites WHERE micro_sites.user_id = users.id AND micro_sites.status != 'Draft') DESC").Order("updated_at desc").Limit(limit).Offset(offset).Find(&users).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, service.ErrorResponse("Failed to fetch users"))
 		return
 	}
