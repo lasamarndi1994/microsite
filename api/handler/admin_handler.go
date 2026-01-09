@@ -49,6 +49,9 @@ func GetAllUsers(c *gin.Context) {
 	// Build query
 	query := database.DB.Model(&model.User{})
 
+	// Filter: Only users with at least one microsite
+	query = query.Where("EXISTS (SELECT 1 FROM micro_sites WHERE micro_sites.user_id = users.id)")
+
 	// Search filter
 	search := c.Query("search")
 	if search != "" {
@@ -85,6 +88,13 @@ func GetAllUsers(c *gin.Context) {
 	// Calculate total pages
 	totalPages := int(math.Ceil(float64(totalRecords) / float64(limit)))
 
+	// Prepare response with masked mobile numbers
+	type UserResponse struct {
+		model.User
+		MobileNumber string `json:"mobile_number"`
+	}
+	var responseData []UserResponse
+
 	// Get microsite counts for fetched users
 	if len(users) > 0 {
 		var userIDs []uint64
@@ -120,20 +130,34 @@ func GetAllUsers(c *gin.Context) {
 			countMap[uint64(c.UserId)] = c
 		}
 
-		for i := range users {
-			c := countMap[users[i].Id]
-			users[i].MicrositeCount = c.TotalCount
-			users[i].MicrositeRejectedCount = c.RejectedCount
-			users[i].MicrositeApprovedCount = c.ApprovedCount
-			users[i].MicrositePendingCount = c.PendingCount
+		for _, u := range users {
+			c := countMap[u.Id]
+			u.MicrositeCount = c.TotalCount
+			u.MicrositeRejectedCount = c.RejectedCount
+			u.MicrositeApprovedCount = c.ApprovedCount
+			u.MicrositePendingCount = c.PendingCount
+
+			// Mask mobile number
+			mobileStr := strconv.Itoa(u.MobileNumber)
+			maskedMobile := mobileStr
+			if len(mobileStr) > 5 {
+				maskedMobile = "*****" + mobileStr[5:]
+			}
+
+			responseData = append(responseData, UserResponse{
+				User:         u,
+				MobileNumber: maskedMobile,
+			})
 		}
+	} else {
+		responseData = []UserResponse{}
 	}
 
 	// Return success response with pagination
 	c.JSON(http.StatusOK, gin.H{
 		"status":  true,
 		"message": "Users fetched successfully",
-		"data":    users,
+		"data":    responseData,
 		"pagination": gin.H{
 			"current_page":  page,
 			"limit":         limit,
@@ -214,6 +238,13 @@ func GetUserMicrosites(c *gin.Context) {
 		return
 	}
 
+	// Mask mobile number
+	mobileStr := strconv.Itoa(user.MobileNumber)
+	maskedMobile := mobileStr
+	if len(mobileStr) > 5 {
+		maskedMobile = "*****" + mobileStr[5:]
+	}
+
 	// Return success response
 	c.JSON(http.StatusOK, gin.H{
 		"status":  true,
@@ -223,7 +254,7 @@ func GetUserMicrosites(c *gin.Context) {
 			"uuid":          user.Uuid,
 			"user_name":     user.UserName,
 			"email":         user.Email,
-			"mobile_number": user.MobileNumber,
+			"mobile_number": maskedMobile,
 			"status":        user.Status,
 			"user_avatar":   user.UserAvatar,
 			"user_slug":     user.Slug,
