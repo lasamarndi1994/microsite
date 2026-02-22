@@ -349,8 +349,7 @@ func DeleteMicrosite(c *gin.Context) {
 
 func GetMicrositeSlugDetails(c *gin.Context) {
 	slug := c.Param("slug") // User slug
-	authHeader := c.GetHeader("Authorization")
-
+	//autWhHeader := c.GetHeader("Authorization")
 	var microsite model.MicroSite
 
 	if err := database.DB.
@@ -369,7 +368,7 @@ func GetMicrositeSlugDetails(c *gin.Context) {
 
 	go func() {
 
-		if microsite.Status == "Approved" && authHeader == "" {
+		if microsite.Status == "Approved" {
 			database.DB.Model(&microsite).UpdateColumn("view_count", gorm.Expr("view_count + ?", 1))
 
 		}
