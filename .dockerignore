@@ -1,0 +1,20 @@
+# Git
+.git
+.gitignore
+
+# Docker
+docker-compose.yml
+Dockerfile
+
+# Go
+vendor/
+go.work
+go.work.sum
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp
+tmp/
+.gemini/
