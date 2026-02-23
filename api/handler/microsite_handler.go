@@ -242,6 +242,7 @@ func UpdateMicrosite(c *gin.Context) {
 	existing.Description = req.Description
 	existing.BusinessName = req.BusinessName
 	existing.Location = req.Location
+	existing.Slug = req.Slug
 
 	if req.RequestType == "Draft" {
 		existing.Status = "Draft"
